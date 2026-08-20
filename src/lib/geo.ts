@@ -21,6 +21,10 @@ export function formatDistancia(km: number): string {
   return `${km.toFixed(1)} km`;
 }
 
-export function urlComoLlegar(destino: Coords): string {
+export function urlGoogleMaps(destino: Coords): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${destino.lat},${destino.lng}`;
+}
+
+export function urlWaze(destino: Coords): string {
+  return `https://waze.com/ul?ll=${destino.lat},${destino.lng}&navigate=yes`;
 }

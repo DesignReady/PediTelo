@@ -6,7 +6,7 @@ import { Comentario, HotelConDisponibilidad } from "@/lib/types";
 import CategoriaBooking from "./CategoriaBooking";
 import Comentarios from "./Comentarios";
 import { useGeolocation } from "@/lib/useGeolocation";
-import { distanciaKm, formatDistancia, urlComoLlegar } from "@/lib/geo";
+import { distanciaKm, formatDistancia, urlGoogleMaps, urlWaze } from "@/lib/geo";
 
 export default function HotelDetailClient({ slug }: { slug: string }) {
   const [hotel, setHotel] = useState<HotelConDisponibilidad | null>(null);
@@ -102,12 +102,20 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <a
-            href={urlComoLlegar(hotel)}
+            href={urlGoogleMaps(hotel)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 rounded-full bg-pink-600 px-3 py-1.5 text-xs font-semibold text-white transition active:bg-pink-700 sm:hover:bg-pink-700"
           >
-            🧭 Cómo llegar
+            🧭 Google Maps
+          </a>
+          <a
+            href={urlWaze(hotel)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-pink-700 transition active:bg-pink-50 sm:hover:bg-pink-50"
+          >
+            🚗 Waze
           </a>
           {km !== null ? (
             <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500">
