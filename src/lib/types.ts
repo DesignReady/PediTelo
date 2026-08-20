@@ -62,10 +62,19 @@ export interface Comentario {
   creada: string;
 }
 
+export interface CuentaHotel {
+  id: string;
+  hotelId: string;
+  email: string;
+  passwordHash: string;
+  creada: string;
+}
+
 export interface DB {
   hotels: Hotel[];
   reservas: Reserva[];
   comentarios: Comentario[];
+  cuentas: CuentaHotel[];
 }
 
 export interface CategoriaConDisponibilidad extends Categoria {

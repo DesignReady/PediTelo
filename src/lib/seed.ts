@@ -263,5 +263,6 @@ export function seedDB(): DB {
     hotels,
     reservas: [],
     comentarios: seedComentarios(hotels),
+    cuentas: [],
   };
 }

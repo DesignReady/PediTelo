@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mutateDB } from "@/lib/store";
 import { ReservaEstado } from "@/lib/types";
+import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
 interface PatchReservaBody {
   estado?: ReservaEstado;
@@ -11,6 +12,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+
+  const sesion = await obtenerSesionDesdeRequest(req);
+  if (!sesion) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   const body = (await req.json().catch(() => ({}))) as PatchReservaBody;
 
   if (body.estado !== "finalizada" && body.estado !== "cancelada") {
@@ -21,6 +28,7 @@ export async function PATCH(
     const reserva = await mutateDB((db) => {
       const r = db.reservas.find((x) => x.id === id);
       if (!r) throw new Error("Reserva no encontrada");
+      if (r.hotelId !== sesion.hotelId) throw new Error("No autorizado");
 
       if (r.estado === "activa") {
         const hotel = db.hotels.find((h) => h.id === r.hotelId);

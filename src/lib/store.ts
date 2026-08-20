@@ -30,6 +30,7 @@ function getBlobStore() {
 // para siempre sin los campos nuevos aunque el código se actualice.
 function normalizar(db: DB): DB {
   if (!db.comentarios) db.comentarios = [];
+  if (!db.cuentas) db.cuentas = [];
 
   const faltaAlgo = db.hotels.some(
     (h) => h.descripcion === undefined || h.reglas === undefined

@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mutateDB, readDBSincronizada } from "@/lib/store";
 import { hotelConDisponibilidad } from "@/lib/availability";
+import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+
+  const sesion = await obtenerSesionDesdeRequest(req);
+  if (!sesion || sesion.hotelId !== id) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   try {
     const db = await readDBSincronizada();
     const hotel = db.hotels.find((h) => h.id === id);
@@ -41,6 +48,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+
+  const sesion = await obtenerSesionDesdeRequest(req);
+  if (!sesion || sesion.hotelId !== id) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   const body = (await req.json().catch(() => ({}))) as PatchHotelBody;
 
   try {

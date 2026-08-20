@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mutateDB } from "@/lib/store";
+import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
 interface PatchCategoriaBody {
   nombre?: string;
@@ -15,6 +16,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; categoriaId: string }> }
 ) {
   const { id, categoriaId } = await params;
+
+  const sesion = await obtenerSesionDesdeRequest(req);
+  if (!sesion || sesion.hotelId !== id) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   const body = (await req.json().catch(() => ({}))) as PatchCategoriaBody;
 
   try {
