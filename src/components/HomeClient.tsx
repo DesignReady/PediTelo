@@ -18,7 +18,6 @@ export default function HomeClient() {
   const [rango, setRango] = useState<{ min: number; max: number } | null>(null);
   const [precioSel, setPrecioSel] = useState<{ min: number; max: number } | null>(null);
   const [precioAplicado, setPrecioAplicado] = useState<{ min: number; max: number } | null>(null);
-  const [mostrarFiltroPrecio, setMostrarFiltroPrecio] = useState(false);
 
   const { coords, estado, solicitar } = useGeolocation();
 
@@ -98,63 +97,73 @@ export default function HomeClient() {
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-6">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-wrap sm:overflow-visible [&::-webkit-scrollbar]:hidden">
-          <button
-            onClick={() => setSoloDisponibles((v) => !v)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
-              soloDisponibles
-                ? "border-pink-500 bg-pink-500 text-white"
-                : "border-neutral-200 bg-white text-neutral-500"
-            }`}
+        <div className="space-y-4 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm">
+          <label
+            htmlFor="filtro-disponible"
+            className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-neutral-700"
           >
-            Disponible ahora
-          </button>
-          <button
-            onClick={() => setZona("")}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
-              zona === ""
-                ? "border-pink-500 bg-pink-500 text-white"
-                : "border-neutral-200 bg-white text-neutral-500"
-            }`}
-          >
-            Todas las zonas
-          </button>
-          {zonas.map((z) => (
-            <button
-              key={z}
-              onClick={() => setZona(z)}
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
-                zona === z
-                  ? "border-pink-500 bg-pink-500 text-white"
-                  : "border-neutral-200 bg-white text-neutral-500"
-              }`}
-            >
-              {z}
-            </button>
-          ))}
-          <button
-            onClick={() => setMostrarFiltroPrecio((v) => !v)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
-              mostrarFiltroPrecio
-                ? "border-pink-500 bg-pink-500 text-white"
-                : "border-neutral-200 bg-white text-neutral-500"
-            }`}
-          >
-            💲 Precio
-          </button>
-        </div>
-
-        {mostrarFiltroPrecio && rango && precioSel && (
-          <div className="mt-3 rounded-xl border border-pink-100 bg-white p-3 sm:max-w-xs">
-            <PriceRangeSlider
-              min={rango.min}
-              max={rango.max}
-              valueMin={precioSel.min}
-              valueMax={precioSel.max}
-              onChange={(min, max) => setPrecioSel({ min, max })}
+            <input
+              id="filtro-disponible"
+              type="checkbox"
+              checked={soloDisponibles}
+              onChange={(e) => setSoloDisponibles(e.target.checked)}
+              className="h-4 w-4 shrink-0 accent-pink-600"
             />
+            Buscar solo lugares abiertos y con disponibilidad ahora
+          </label>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="filtro-zona"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400"
+              >
+                Barrio
+              </label>
+              <select
+                id="filtro-zona"
+                value={zona}
+                onChange={(e) => setZona(e.target.value)}
+                className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-700 focus:border-pink-400 focus:outline-none"
+              >
+                <option value="">Todos los barrios</option>
+                {zonas.map((z) => (
+                  <option key={z} value={z}>
+                    {z}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <span
+                id="filtro-precio-label"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400"
+              >
+                Precio por turno
+              </span>
+              {rango && precioSel ? (
+                <div
+                  role="group"
+                  aria-labelledby="filtro-precio-label"
+                  className="rounded-lg border border-neutral-200 px-3 py-2.5"
+                >
+                  <PriceRangeSlider
+                    min={rango.min}
+                    max={rango.max}
+                    valueMin={precioSel.min}
+                    valueMax={precioSel.max}
+                    onChange={(min, max) => setPrecioSel({ min, max })}
+                  />
+                </div>
+              ) : (
+                <div className="rounded-lg border border-neutral-200 px-3 py-2.5 text-sm text-neutral-300">
+                  Cargando…
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
 
         <div className="mt-3 flex items-center justify-between text-xs text-neutral-400">
           <span>
