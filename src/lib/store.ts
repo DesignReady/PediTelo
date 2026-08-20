@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { DB, Reserva } from "./types";
-import { seedDB } from "./seed";
+import { seedDB, seedHotels } from "./seed";
 import { isNetlifyRuntime } from "./env";
 
 // En Netlify las funciones corren en un filesystem de solo lectura (no persiste
@@ -24,8 +24,25 @@ function getBlobStore() {
   return blobStorePromise;
 }
 
+// Rellena campos que se agregaron después de que ya había datos guardados
+// (por ejemplo en Netlify Blobs, donde el seed solo corre una vez, la primera
+// vez que la base está vacía). Sin esto, los hoteles ya persistidos se quedan
+// para siempre sin los campos nuevos aunque el código se actualice.
 function normalizar(db: DB): DB {
   if (!db.comentarios) db.comentarios = [];
+
+  const faltaAlgo = db.hotels.some(
+    (h) => h.descripcion === undefined || h.reglas === undefined
+  );
+  if (faltaAlgo) {
+    const porSlug = new Map(seedHotels().map((h) => [h.slug, h]));
+    for (const h of db.hotels) {
+      const base = porSlug.get(h.slug);
+      if (h.descripcion === undefined) h.descripcion = base?.descripcion ?? "";
+      if (h.reglas === undefined) h.reglas = base?.reglas ?? [];
+    }
+  }
+
   return db;
 }
 
