@@ -14,6 +14,16 @@ function turnos(p1: number, p3: number, p5: number) {
   ];
 }
 
+function reglasDefault(): string[] {
+  return [
+    "Ingreso exclusivo para mayores de 18 años con documento.",
+    "El pago del turno se realiza al ingresar.",
+    "Prohibido fumar dentro de las habitaciones.",
+    "No se permite el ingreso de mascotas.",
+    "Pasado el horario del turno se cobra una fracción adicional.",
+  ];
+}
+
 function cat(
   nombre: string,
   descripcion: string,
@@ -41,6 +51,9 @@ export function seedHotels(): Hotel[] {
       nombre: "Luna Palermo",
       zona: "Palermo, CABA",
       direccion: "Av. Santa Fe 4200",
+      descripcion:
+        "Alojamiento por horas en pleno Palermo, pensado para parejas que buscan comodidad y privacidad. Habitaciones climatizadas, cochera propia y check-in discreto las 24 horas.",
+      reglas: reglasDefault(),
       rating: 4.6,
       telefono: "11-4000-1001",
       lat: -34.5875,
@@ -61,6 +74,9 @@ export function seedHotels(): Hotel[] {
       nombre: "Cielo Recoleta",
       zona: "Recoleta, CABA",
       direccion: "Av. Las Heras 2450",
+      descripcion:
+        "El clásico de Recoleta: ambientes premium, room service y atención cuidada en cada detalle. Ideal para quienes buscan una experiencia más exclusiva.",
+      reglas: reglasDefault(),
       rating: 4.8,
       telefono: "11-4000-1002",
       lat: -34.5895,
@@ -80,6 +96,9 @@ export function seedHotels(): Hotel[] {
       nombre: "Aurora Almagro",
       zona: "Almagro, CABA",
       direccion: "Av. Rivadavia 3800",
+      descripcion:
+        "Recién renovado, con habitaciones temáticas y buena relación precio-calidad. A pocas cuadras de la Av. Corrientes.",
+      reglas: reglasDefault(),
       rating: 4.3,
       telefono: "11-4000-1003",
       lat: -34.6082,
@@ -99,6 +118,9 @@ export function seedHotels(): Hotel[] {
       nombre: "Tulipán Caballito",
       zona: "Caballito, CABA",
       direccion: "Av. Pedro Goyena 1200",
+      descripcion:
+        "Opción clásica y prolija en Caballito, con cochera propia y buena relación precio-calidad para escapadas cortas.",
+      reglas: reglasDefault(),
       rating: 4.1,
       telefono: "11-4000-1004",
       lat: -34.6178,
@@ -118,6 +140,9 @@ export function seedHotels(): Hotel[] {
       nombre: "Punto Rosa Avellaneda",
       zona: "Avellaneda, GBA Sur",
       direccion: "Av. Mitre 900",
+      descripcion:
+        "Alojamiento amplio y luminoso en Avellaneda, con la mejor opción de la zona en su categoría Premium con cochera propia.",
+      reglas: reglasDefault(),
       rating: 4.0,
       telefono: "11-4000-1005",
       lat: -34.6626,
@@ -137,6 +162,9 @@ export function seedHotels(): Hotel[] {
       nombre: "Beso Quilmes",
       zona: "Quilmes, GBA Sur",
       direccion: "Av. Calchaquí 3100",
+      descripcion:
+        "Alojamiento simple y prolijo en Quilmes, con la mejor relación precio-calidad de la zona sur.",
+      reglas: reglasDefault(),
       rating: 3.9,
       telefono: "11-4000-1006",
       lat: -34.7203,
@@ -156,6 +184,9 @@ export function seedHotels(): Hotel[] {
       nombre: "Eclipse Vicente López",
       zona: "Vicente López, GBA Norte",
       direccion: "Av. Maipú 2100",
+      descripcion:
+        "Alojamiento moderno en Vicente López, con jardín interno y la suite Premium más exclusiva de la cadena.",
+      reglas: reglasDefault(),
       rating: 4.5,
       telefono: "11-4000-1007",
       lat: -34.5267,
@@ -176,6 +207,9 @@ export function seedHotels(): Hotel[] {
       nombre: "Sensación San Justo",
       zona: "San Justo, GBA Oeste",
       direccion: "Av. Rivadavia 15800",
+      descripcion:
+        "Alojamiento cómodo y cálido en San Justo, con habitaciones temáticas y buena disponibilidad todos los días.",
+      reglas: reglasDefault(),
       rating: 4.2,
       telefono: "11-4000-1008",
       lat: -34.6889,

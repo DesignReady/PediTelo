@@ -3,6 +3,8 @@ import { mutateDB } from "@/lib/store";
 
 interface PatchCategoriaBody {
   nombre?: string;
+  descripcion?: string;
+  amenities?: string[];
   totalHabitaciones?: number;
   disponibles?: number;
   turnos?: { horas: number; precio?: number; activo?: boolean }[];
@@ -24,6 +26,14 @@ export async function PATCH(
 
       if (typeof body.nombre === "string" && body.nombre.trim()) {
         cat.nombre = body.nombre.trim();
+      }
+
+      if (typeof body.descripcion === "string") {
+        cat.descripcion = body.descripcion.trim();
+      }
+
+      if (Array.isArray(body.amenities)) {
+        cat.amenities = body.amenities.map((a) => a.trim()).filter(Boolean);
       }
 
       if (typeof body.totalHabitaciones === "number" && body.totalHabitaciones >= 0) {

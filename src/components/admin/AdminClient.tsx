@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HotelConDisponibilidad, Reserva } from "@/lib/types";
 import CategoriaAdminCard from "./CategoriaAdminCard";
+import HotelInfoCard from "./HotelInfoCard";
 import ReservasTable from "./ReservasTable";
 
 interface HotelResumen {
@@ -152,6 +153,10 @@ export default function AdminClient() {
             >
               {hotel.abierto ? "Abierto — tocar para cerrar" : "Cerrado — tocar para abrir"}
             </button>
+          </div>
+
+          <div className="mt-4">
+            <HotelInfoCard hotel={hotel} onGuardado={cargarDetalle} />
           </div>
 
           <h2 className="mt-8 mb-3 text-lg font-bold text-neutral-800">

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { CategoriaConDisponibilidad, TurnoHoras } from "@/lib/types";
+import EditableTagList from "./EditableTagList";
 
 export default function CategoriaAdminCard({
   hotelId,
@@ -17,6 +18,8 @@ export default function CategoriaAdminCard({
   // está escribiendo y parece que "no deja editar".
   const idRef = useRef(categoria.id);
   const [nombre, setNombre] = useState(categoria.nombre);
+  const [descripcion, setDescripcion] = useState(categoria.descripcion);
+  const [amenities, setAmenities] = useState(categoria.amenities);
   const [total, setTotal] = useState(categoria.totalHabitaciones);
   const [disponibles, setDisponibles] = useState(categoria.disponibles);
   const [turnos, setTurnos] = useState(categoria.turnos);
@@ -26,6 +29,8 @@ export default function CategoriaAdminCard({
   if (idRef.current !== categoria.id) {
     idRef.current = categoria.id;
     setNombre(categoria.nombre);
+    setDescripcion(categoria.descripcion);
+    setAmenities(categoria.amenities);
     setTotal(categoria.totalHabitaciones);
     setDisponibles(categoria.disponibles);
     setTurnos(categoria.turnos);
@@ -51,6 +56,8 @@ export default function CategoriaAdminCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre,
+          descripcion,
+          amenities,
           totalHabitaciones: total,
           disponibles: disponiblesClamped,
           turnos: turnos.map((t) => ({ horas: t.horas, precio: t.precio, activo: t.activo })),
@@ -169,6 +176,41 @@ export default function CategoriaAdminCard({
             </label>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <label
+          htmlFor={`descripcion-${categoria.id}`}
+          className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400"
+        >
+          Descripción de la habitación
+        </label>
+        <textarea
+          id={`descripcion-${categoria.id}`}
+          value={descripcion}
+          onChange={(e) => {
+            setDescripcion(e.target.value);
+            setOk(false);
+          }}
+          rows={2}
+          placeholder="Contales a los huéspedes qué tiene esta habitación"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-700 focus:border-pink-400 focus:outline-none"
+        />
+      </div>
+
+      <div className="mt-4">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+          Servicios de esta habitación
+        </span>
+        <EditableTagList
+          items={amenities}
+          onChange={(items) => {
+            setAmenities(items);
+            setOk(false);
+          }}
+          placeholder="Ej: Jacuzzi, Minibar…"
+          emptyText="Sin servicios cargados todavía."
+        />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">

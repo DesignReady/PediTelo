@@ -131,6 +131,10 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
           </div>
         )}
 
+        {hotel.descripcion && (
+          <p className="mt-4 text-sm leading-relaxed text-neutral-600">{hotel.descripcion}</p>
+        )}
+
         <div className="mt-4 flex flex-wrap gap-1.5">
           {hotel.amenitiesGenerales.map((a) => (
             <span
@@ -141,6 +145,20 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
             </span>
           ))}
         </div>
+
+        {hotel.reglas.length > 0 && (
+          <div className="mt-5 rounded-xl border border-pink-100 bg-pink-50/40 p-4">
+            <h2 className="text-sm font-bold text-neutral-800">Reglas del alojamiento</h2>
+            <ul className="mt-2 space-y-1.5">
+              {hotel.reglas.map((r, i) => (
+                <li key={i} className="flex gap-2 text-sm text-neutral-600">
+                  <span className="text-pink-400">•</span>
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <h2 className="mt-7 mb-3 text-base font-bold text-neutral-800 sm:text-lg">
           Categorías de habitación

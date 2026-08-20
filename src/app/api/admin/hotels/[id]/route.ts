@@ -31,6 +31,9 @@ export async function GET(
 
 interface PatchHotelBody {
   abierto?: boolean;
+  descripcion?: string;
+  reglas?: string[];
+  amenitiesGenerales?: string[];
 }
 
 export async function PATCH(
@@ -45,6 +48,13 @@ export async function PATCH(
       const h = db.hotels.find((x) => x.id === id);
       if (!h) throw new Error("Hotel no encontrado");
       if (typeof body.abierto === "boolean") h.abierto = body.abierto;
+      if (typeof body.descripcion === "string") h.descripcion = body.descripcion.trim();
+      if (Array.isArray(body.reglas)) {
+        h.reglas = body.reglas.map((r) => r.trim()).filter(Boolean);
+      }
+      if (Array.isArray(body.amenitiesGenerales)) {
+        h.amenitiesGenerales = body.amenitiesGenerales.map((a) => a.trim()).filter(Boolean);
+      }
       return h;
     });
     return NextResponse.json({ hotel });

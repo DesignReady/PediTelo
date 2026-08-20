@@ -23,11 +23,13 @@ export interface Hotel {
   nombre: string;
   zona: string;
   direccion: string;
+  descripcion: string;
   rating: number;
   telefono: string;
   colorDesde: string;
   colorHasta: string;
   amenitiesGenerales: string[];
+  reglas: string[];
   abierto: boolean;
   lat: number;
   lng: number;
