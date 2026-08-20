@@ -2,10 +2,18 @@ import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import type { NextRequest } from "next/server";
 
-const SESSION_SECRET = process.env.SESSION_SECRET || "dev-secret-cambiar-en-produccion";
+const SESSION_SECRET = process.env.SESSION_SECRET || "";
 const SUPERADMIN_PASSWORD = process.env.SUPERADMIN_PASSWORD || "";
 
-const secretKey = () => new TextEncoder().encode(SESSION_SECRET);
+// Sin secreto configurado no se firma ni se valida ninguna sesión: preferimos
+// que el login falle con un error claro antes que usar un valor por defecto
+// que quedaría visible en el repo público.
+const secretKey = () => {
+  if (!SESSION_SECRET) {
+    throw new Error("Falta configurar la variable de entorno SESSION_SECRET");
+  }
+  return new TextEncoder().encode(SESSION_SECRET);
+};
 
 export const COOKIE_SESION = "pt_sesion";
 export const COOKIE_SUPERADMIN = "pt_superadmin";

@@ -22,14 +22,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email o contraseña incorrectos" }, { status: 401 });
   }
 
-  const token = await crearTokenSesion({ hotelId: cuenta.hotelId, email: cuenta.email });
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set(COOKIE_SESION, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
-  return res;
+  try {
+    const token = await crearTokenSesion({ hotelId: cuenta.hotelId, email: cuenta.email });
+    const res = NextResponse.json({ ok: true });
+    res.cookies.set(COOKIE_SESION, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+    return res;
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Error interno" },
+      { status: 500 }
+    );
+  }
 }

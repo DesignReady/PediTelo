@@ -19,14 +19,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Clave incorrecta" }, { status: 401 });
   }
 
-  const token = await crearTokenSuperadmin();
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set(COOKIE_SUPERADMIN, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 12,
-  });
-  return res;
+  try {
+    const token = await crearTokenSuperadmin();
+    const res = NextResponse.json({ ok: true });
+    res.cookies.set(COOKIE_SUPERADMIN, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 12,
+    });
+    return res;
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Error interno" },
+      { status: 500 }
+    );
+  }
 }
