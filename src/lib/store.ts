@@ -94,6 +94,17 @@ export async function mutateDB<T>(fn: (db: DB) => T): Promise<T> {
   return run;
 }
 
+/** Descarta todo lo persistido y vuelve a sembrar desde cero. */
+export async function resetDB(): Promise<DB> {
+  const run = writeQueue.then(async () => {
+    const fresh = seedDB();
+    await saveDB(fresh);
+    return fresh;
+  });
+  writeQueue = run.catch(() => undefined);
+  return run;
+}
+
 /**
  * Marca como finalizadas las reservas cuyo turno ya venció y libera
  * automáticamente esa habitación en la categoría correspondiente.
