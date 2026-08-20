@@ -19,18 +19,26 @@ export async function GET(
     return NextResponse.json({ error: "Nombre de archivo inválido" }, { status: 400 });
   }
 
-  const buffer = await leerImagen(filename);
-  if (!buffer) {
-    return NextResponse.json({ error: "Imagen no encontrada" }, { status: 404 });
+  try {
+    const buffer = await leerImagen(filename);
+    if (!buffer) {
+      return NextResponse.json({ error: "Imagen no encontrada" }, { status: 404 });
+    }
+
+    const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+    const contentType = CONTENT_TYPES[ext] ?? "application/octet-stream";
+
+    return new NextResponse(new Uint8Array(buffer), {
+      headers: {
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
+  } catch (e) {
+    console.error("GET /api/uploads/[filename]", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Error interno" },
+      { status: 500 }
+    );
   }
-
-  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-  const contentType = CONTENT_TYPES[ext] ?? "application/octet-stream";
-
-  return new NextResponse(new Uint8Array(buffer), {
-    headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=31536000, immutable",
-    },
-  });
 }

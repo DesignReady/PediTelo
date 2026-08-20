@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
+import { isNetlifyRuntime } from "./env";
 
-const USE_BLOBS = !!process.env.NETLIFY;
+const USE_BLOBS = isNetlifyRuntime;
 
 const UPLOADS_DIR = path.join(process.cwd(), "public", "uploads");
 const BLOB_STORE_NAME = "peditelo-uploads";

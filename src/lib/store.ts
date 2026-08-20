@@ -2,11 +2,12 @@ import fs from "fs";
 import path from "path";
 import { DB, Reserva } from "./types";
 import { seedDB } from "./seed";
+import { isNetlifyRuntime } from "./env";
 
 // En Netlify las funciones corren en un filesystem de solo lectura (no persiste
 // entre invocaciones), así que ahí usamos Netlify Blobs. En cualquier otro lado
 // (desarrollo local o Render con disco persistente) usamos un archivo JSON normal.
-const USE_BLOBS = !!process.env.NETLIFY;
+const USE_BLOBS = isNetlifyRuntime;
 
 const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "db.json");

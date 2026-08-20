@@ -7,18 +7,26 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const db = await readDBSincronizada();
-  const hotel = db.hotels.find((h) => h.id === id);
-  if (!hotel) {
-    return NextResponse.json({ error: "Hotel no encontrado" }, { status: 404 });
-  }
-  const now = new Date();
-  const conDisponibilidad = hotelConDisponibilidad(db, hotel, now);
-  const reservas = db.reservas
-    .filter((r) => r.hotelId === id && r.estado === "activa" && new Date(r.fin) > now)
-    .sort((a, b) => new Date(a.fin).getTime() - new Date(b.fin).getTime());
+  try {
+    const db = await readDBSincronizada();
+    const hotel = db.hotels.find((h) => h.id === id);
+    if (!hotel) {
+      return NextResponse.json({ error: "Hotel no encontrado" }, { status: 404 });
+    }
+    const now = new Date();
+    const conDisponibilidad = hotelConDisponibilidad(db, hotel, now);
+    const reservas = db.reservas
+      .filter((r) => r.hotelId === id && r.estado === "activa" && new Date(r.fin) > now)
+      .sort((a, b) => new Date(a.fin).getTime() - new Date(b.fin).getTime());
 
-  return NextResponse.json({ hotel: conDisponibilidad, reservas });
+    return NextResponse.json({ hotel: conDisponibilidad, reservas });
+  } catch (e) {
+    console.error("GET /api/admin/hotels/[id]", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Error interno" },
+      { status: 500 }
+    );
+  }
 }
 
 interface PatchHotelBody {
