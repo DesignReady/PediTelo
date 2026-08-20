@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readDBSincronizada } from "@/lib/store";
 import { hotelConDisponibilidad } from "@/lib/availability";
+import { HotelConDisponibilidad } from "@/lib/types";
+
+function coincide(amenity: string, buscado: string): boolean {
+  const a = amenity.toLowerCase();
+  const b = buscado.toLowerCase();
+  return a.includes(b) || b.includes(a);
+}
+
+function hotelTieneServicio(hotel: HotelConDisponibilidad, servicio: string): boolean {
+  const todos = [
+    ...hotel.amenitiesGenerales,
+    ...hotel.categorias.flatMap((c) => c.amenities),
+  ];
+  return todos.some((a) => coincide(a, servicio));
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,10 +27,18 @@ export async function GET(req: NextRequest) {
     const precioMaxParam = searchParams.get("precioMax");
     const precioMin = precioMinParam ? Number(precioMinParam) : null;
     const precioMax = precioMaxParam ? Number(precioMaxParam) : null;
+    const serviciosParam = searchParams.get("servicios");
+    const servicios = serviciosParam
+      ? serviciosParam.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
 
     let hotels = db.hotels.map((h) => hotelConDisponibilidad(db, h));
 
     if (zona) hotels = hotels.filter((h) => h.zona === zona);
+
+    if (servicios.length > 0) {
+      hotels = hotels.filter((h) => servicios.every((s) => hotelTieneServicio(h, s)));
+    }
 
     if (precioMin !== null || precioMax !== null) {
       hotels = hotels.filter((h) =>

@@ -7,6 +7,17 @@ import PriceRangeSlider from "./PriceRangeSlider";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { distanciaKm } from "@/lib/geo";
 
+const SERVICIOS_FILTRO = [
+  { id: "Sillón", icon: "🛋️" },
+  { id: "Jacuzzi", icon: "🛁" },
+  { id: "Barra para bailar", icon: "💃" },
+  { id: "WiFi", icon: "📶" },
+  { id: "Parlantes", icon: "🔊" },
+  { id: "Servicios de streaming", icon: "📺" },
+  { id: "Aire acondicionado", icon: "❄️" },
+  { id: "Cochera", icon: "🅿️" },
+];
+
 export default function HomeClient() {
   const [hotels, setHotels] = useState<HotelConDisponibilidad[]>([]);
   const [zonas, setZonas] = useState<string[]>([]);
@@ -18,6 +29,7 @@ export default function HomeClient() {
   const [rango, setRango] = useState<{ min: number; max: number } | null>(null);
   const [precioSel, setPrecioSel] = useState<{ min: number; max: number } | null>(null);
   const [precioAplicado, setPrecioAplicado] = useState<{ min: number; max: number } | null>(null);
+  const [servicios, setServicios] = useState<string[]>([]);
 
   const { coords, estado, solicitar } = useGeolocation();
 
@@ -35,6 +47,7 @@ export default function HomeClient() {
       params.set("precioMin", String(precioAplicado.min));
       params.set("precioMax", String(precioAplicado.max));
     }
+    if (servicios.length > 0) params.set("servicios", servicios.join(","));
 
     try {
       const res = await fetch(`/api/hotels?${params.toString()}`, { cache: "no-store" });
@@ -53,7 +66,13 @@ export default function HomeClient() {
     } finally {
       setLoading(false);
     }
-  }, [soloDisponibles, zona, precioAplicado]);
+  }, [soloDisponibles, zona, precioAplicado, servicios]);
+
+  function toggleServicio(id: string) {
+    setServicios((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -161,6 +180,33 @@ export default function HomeClient() {
                   Cargando…
                 </div>
               )}
+            </div>
+          </div>
+
+          <div>
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+              Servicios
+            </span>
+            <div role="group" aria-label="Filtrar por servicios" className="flex flex-wrap gap-2">
+              {SERVICIOS_FILTRO.map(({ id, icon }) => {
+                const activo = servicios.includes(id);
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => toggleServicio(id)}
+                    aria-pressed={activo}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                      activo
+                        ? "border-pink-500 bg-pink-50 text-pink-700"
+                        : "border-neutral-200 bg-white text-neutral-600"
+                    }`}
+                  >
+                    <span aria-hidden="true">{icon}</span>
+                    {id}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

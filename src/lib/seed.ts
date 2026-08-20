@@ -64,8 +64,8 @@ export function seedHotels(): Hotel[] {
       abierto: true,
       categorias: [
         cat("Standard", "Habitación climatizada con TV y frigobar.", ["Aire acondicionado", "TV cable", "Frigobar"], 6, [9000, 15000, 21000]),
-        cat("Suite Jacuzzi", "Hidromasaje doble, iluminación LED y minibar.", ["Jacuzzi", "Minibar", "Cama redonda", "TV cable"], 4, [14000, 22000, 30000]),
-        cat("Premium", "La suite más grande, con cochera reservada.", ["Jacuzzi", "Cochera reservada", "Cama redonda", "Sonido bluetooth"], 2, [18000, 27000, 36000]),
+        cat("Suite Jacuzzi", "Hidromasaje doble, iluminación LED y minibar.", ["Jacuzzi", "Minibar", "Cama redonda", "TV cable", "Parlantes"], 4, [14000, 22000, 30000]),
+        cat("Premium", "La suite más grande, con cochera reservada.", ["Jacuzzi", "Cochera reservada", "Cama redonda", "Sonido bluetooth", "Sillón", "Servicios de streaming"], 2, [18000, 27000, 36000]),
       ],
     },
     {
@@ -87,7 +87,7 @@ export function seedHotels(): Hotel[] {
       abierto: true,
       categorias: [
         cat("Standard", "Habitación cómoda ideal para una escapada corta.", ["Aire acondicionado", "TV cable"], 5, [9500, 15500, 21500]),
-        cat("Suite Jacuzzi", "Hidromasaje panorámico y decoración premium.", ["Jacuzzi", "Minibar", "Vista panorámica"], 3, [15000, 23000, 31000]),
+        cat("Suite Jacuzzi", "Hidromasaje panorámico y decoración premium.", ["Jacuzzi", "Minibar", "Vista panorámica", "Servicios de streaming"], 3, [15000, 23000, 31000]),
       ],
     },
     {
@@ -198,7 +198,7 @@ export function seedHotels(): Hotel[] {
       categorias: [
         cat("Standard", "Habitación moderna con buena luz natural.", ["Aire acondicionado", "TV cable"], 5, [9800, 16000, 22000]),
         cat("Suite Jacuzzi", "Hidromasaje con vista a jardín interno.", ["Jacuzzi", "Jardín interno", "Minibar"], 3, [15500, 24000, 32000]),
-        cat("Premium", "Suite más exclusiva, cochera cerrada individual.", ["Jacuzzi", "Cochera individual", "Sonido bluetooth", "Minibar"], 1, [19500, 29000, 38000]),
+        cat("Premium", "Suite más exclusiva, cochera cerrada individual.", ["Jacuzzi", "Cochera individual", "Sonido bluetooth", "Minibar", "Barra para bailar", "Sillón"], 1, [19500, 29000, 38000]),
       ],
     },
     {

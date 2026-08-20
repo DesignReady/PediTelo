@@ -54,8 +54,11 @@ export default function HotelCard({
         <div className="mt-auto flex items-center justify-between pt-1.5">
           <span className="text-[11px] text-neutral-400">Turnos 1h · 3h · 5h</span>
           {hotel.precioDesde !== null ? (
-            <span className="text-sm font-bold text-rose-700">
-              {formatARS(hotel.precioDesde)}
+            <span className="text-right leading-tight">
+              <span className="block text-[10px] font-medium text-neutral-400">Desde</span>
+              <span className="text-sm font-bold text-rose-700">
+                {formatARS(hotel.precioDesde)}
+              </span>
             </span>
           ) : (
             <span className="text-sm text-neutral-300">—</span>
