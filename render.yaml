@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: peditelo
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: peditelo-data
+      mountPath: /var/data
+      sizeGB: 1
