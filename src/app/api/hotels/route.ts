@@ -3,6 +3,13 @@ import { readDBSincronizada } from "@/lib/store";
 import { hotelConDisponibilidad } from "@/lib/availability";
 import { HotelConDisponibilidad } from "@/lib/types";
 
+function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
 function coincide(amenity: string, buscado: string): boolean {
   const a = amenity.toLowerCase();
   const b = buscado.toLowerCase();
@@ -31,8 +38,14 @@ export async function GET(req: NextRequest) {
     const servicios = serviciosParam
       ? serviciosParam.split(",").map((s) => s.trim()).filter(Boolean)
       : [];
+    const q = searchParams.get("q")?.trim() ?? "";
 
     let hotels = db.hotels.map((h) => hotelConDisponibilidad(db, h));
+
+    if (q) {
+      const qNorm = normalizar(q);
+      hotels = hotels.filter((h) => normalizar(h.nombre).includes(qNorm));
+    }
 
     if (zona) hotels = hotels.filter((h) => h.zona === zona);
 

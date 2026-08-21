@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { HotelConDisponibilidad } from "@/lib/types";
 import { AmenidadOpcion } from "@/lib/amenidades";
 import HotelCard from "./HotelCard";
@@ -23,6 +24,10 @@ const SERVICIOS_FILTRO: AmenidadOpcion[] = [
 ];
 
 export default function HomeClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const q = searchParams.get("q") ?? "";
+
   const [hotels, setHotels] = useState<HotelConDisponibilidad[]>([]);
   const [zonas, setZonas] = useState<string[]>([]);
   const [soloDisponibles, setSoloDisponibles] = useState(true);
@@ -52,6 +57,7 @@ export default function HomeClient() {
       params.set("precioMax", String(precioAplicado.max));
     }
     if (servicios.length > 0) params.set("servicios", servicios.join(","));
+    if (q) params.set("q", q);
 
     try {
       const res = await fetch(`/api/hotels?${params.toString()}`, { cache: "no-store" });
@@ -70,7 +76,7 @@ export default function HomeClient() {
     } finally {
       setLoading(false);
     }
-  }, [soloDisponibles, zona, precioAplicado, servicios]);
+  }, [soloDisponibles, zona, precioAplicado, servicios, q]);
 
   useEffect(() => {
     setLoading(true);
@@ -114,6 +120,21 @@ export default function HomeClient() {
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-6">
+        {q && (
+          <div className="mb-3 flex items-center justify-between gap-2 rounded-xl bg-pink-50 px-3 py-2 text-sm text-pink-700">
+            <span>
+              Buscando: <strong>&ldquo;{q}&rdquo;</strong>
+            </span>
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold hover:bg-pink-100"
+            >
+              Quitar ×
+            </button>
+          </div>
+        )}
+
         <div className="space-y-4 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm">
           <label
             htmlFor="filtro-disponible"
