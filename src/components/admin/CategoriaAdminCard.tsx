@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { CategoriaConDisponibilidad, Habitacion, TurnoHoras } from "@/lib/types";
 import HabitacionesEditor from "./HabitacionesEditor";
-import ServiciosDropdown from "./ServiciosDropdown";
+import ServiciosDropdown from "../ServiciosDropdown";
 
 export default function CategoriaAdminCard({
   hotelId,

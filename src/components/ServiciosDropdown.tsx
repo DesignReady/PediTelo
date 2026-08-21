@@ -1,14 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AMENIDADES_COMUNES } from "@/lib/amenidades";
+import { AMENIDADES_COMUNES, AmenidadOpcion } from "@/lib/amenidades";
 
 export default function ServiciosDropdown({
   items,
   onChange,
+  opciones = AMENIDADES_COMUNES,
+  placeholderVacio = "Sin servicios seleccionados",
+  permitirPersonalizado = true,
 }: {
   items: string[];
   onChange: (items: string[]) => void;
+  opciones?: AmenidadOpcion[];
+  placeholderVacio?: string;
+  permitirPersonalizado?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [nuevo, setNuevo] = useState("");
@@ -34,7 +40,7 @@ export default function ServiciosDropdown({
   }
 
   // Servicios ya elegidos que no están en la lista curada (cargados a mano).
-  const extras = items.filter((i) => !AMENIDADES_COMUNES.some((a) => a.nombre === i));
+  const extras = items.filter((i) => !opciones.some((a) => a.nombre === i));
 
   return (
     <div ref={ref} className="relative">
@@ -46,7 +52,7 @@ export default function ServiciosDropdown({
       >
         <span>
           {items.length === 0
-            ? "Sin servicios seleccionados"
+            ? placeholderVacio
             : `${items.length} servicio${items.length === 1 ? "" : "s"} seleccionado${
                 items.length === 1 ? "" : "s"
               }`}
@@ -57,9 +63,9 @@ export default function ServiciosDropdown({
       </button>
 
       {abierto && (
-        <div className="absolute z-20 mt-1.5 w-full rounded-xl border border-pink-100 bg-white p-3 shadow-lg">
+        <div className="absolute z-20 mt-1.5 w-full min-w-[280px] rounded-xl border border-pink-100 bg-white p-3 shadow-lg">
           <div className="flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
-            {AMENIDADES_COMUNES.map(({ nombre, icon }) => {
+            {opciones.map(({ nombre, icon }) => {
               const activo = items.includes(nombre);
               return (
                 <button
@@ -90,27 +96,29 @@ export default function ServiciosDropdown({
             ))}
           </div>
 
-          <div className="mt-2 flex gap-2 border-t border-neutral-100 pt-2">
-            <input
-              value={nuevo}
-              onChange={(e) => setNuevo(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  agregarPersonalizado();
-                }
-              }}
-              placeholder="Otro servicio…"
-              className="flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs focus:border-pink-400 focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={agregarPersonalizado}
-              className="shrink-0 rounded-lg bg-pink-100 px-3 py-1.5 text-xs font-semibold text-pink-700 hover:bg-pink-200"
-            >
-              Agregar
-            </button>
-          </div>
+          {permitirPersonalizado && (
+            <div className="mt-2 flex gap-2 border-t border-neutral-100 pt-2">
+              <input
+                value={nuevo}
+                onChange={(e) => setNuevo(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    agregarPersonalizado();
+                  }
+                }}
+                placeholder="Otro servicio…"
+                className="flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs focus:border-pink-400 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={agregarPersonalizado}
+                className="shrink-0 rounded-lg bg-pink-100 px-3 py-1.5 text-xs font-semibold text-pink-700 hover:bg-pink-200"
+              >
+                Agregar
+              </button>
+            </div>
+          )}
 
           <button
             type="button"

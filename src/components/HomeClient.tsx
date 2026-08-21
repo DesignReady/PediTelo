@@ -2,20 +2,24 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HotelConDisponibilidad } from "@/lib/types";
+import { AmenidadOpcion } from "@/lib/amenidades";
 import HotelCard from "./HotelCard";
 import PriceRangeSlider from "./PriceRangeSlider";
+import ServiciosDropdown from "./ServiciosDropdown";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { distanciaKm } from "@/lib/geo";
 
-const SERVICIOS_FILTRO = [
-  { id: "Sillón", icon: "🛋️" },
-  { id: "Jacuzzi", icon: "🛁" },
-  { id: "Barra para bailar", icon: "💃" },
-  { id: "WiFi", icon: "📶" },
-  { id: "Parlantes", icon: "🔊" },
-  { id: "Servicios de streaming", icon: "📺" },
-  { id: "Aire acondicionado", icon: "❄️" },
-  { id: "Cochera", icon: "🅿️" },
+// Términos genéricos a propósito (ej. "Cochera" en vez de "Cochera propia")
+// para que el filtro haga match con cualquier variante que haya cargado cada hotel.
+const SERVICIOS_FILTRO: AmenidadOpcion[] = [
+  { nombre: "Sillón", icon: "🛋️" },
+  { nombre: "Jacuzzi", icon: "🛁" },
+  { nombre: "Barra para bailar", icon: "💃" },
+  { nombre: "WiFi", icon: "📶" },
+  { nombre: "Parlantes", icon: "🔊" },
+  { nombre: "Servicios de streaming", icon: "📺" },
+  { nombre: "Aire acondicionado", icon: "❄️" },
+  { nombre: "Cochera", icon: "🅿️" },
 ];
 
 export default function HomeClient() {
@@ -67,12 +71,6 @@ export default function HomeClient() {
       setLoading(false);
     }
   }, [soloDisponibles, zona, precioAplicado, servicios]);
-
-  function toggleServicio(id: string) {
-    setServicios((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
-  }
 
   useEffect(() => {
     setLoading(true);
@@ -187,27 +185,12 @@ export default function HomeClient() {
             <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
               Servicios
             </span>
-            <div role="group" aria-label="Filtrar por servicios" className="flex flex-wrap gap-2">
-              {SERVICIOS_FILTRO.map(({ id, icon }) => {
-                const activo = servicios.includes(id);
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => toggleServicio(id)}
-                    aria-pressed={activo}
-                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                      activo
-                        ? "border-pink-500 bg-pink-50 text-pink-700"
-                        : "border-neutral-200 bg-white text-neutral-600"
-                    }`}
-                  >
-                    <span aria-hidden="true">{icon}</span>
-                    {id}
-                  </button>
-                );
-              })}
-            </div>
+            <ServiciosDropdown
+              items={servicios}
+              onChange={setServicios}
+              opciones={SERVICIOS_FILTRO}
+              placeholderVacio="Cualquier servicio"
+            />
           </div>
         </div>
 

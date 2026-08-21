@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { HotelConDisponibilidad } from "@/lib/types";
 import EditableTagList from "./EditableTagList";
-import ServiciosDropdown from "./ServiciosDropdown";
+import ServiciosDropdown from "../ServiciosDropdown";
 
 export default function HotelInfoCard({
   hotel,
