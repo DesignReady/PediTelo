@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { HotelConDisponibilidad } from "@/lib/types";
 import EditableTagList from "./EditableTagList";
+import ServiciosDropdown from "./ServiciosDropdown";
 
 export default function HotelInfoCard({
   hotel,
@@ -75,14 +76,12 @@ export default function HotelInfoCard({
         <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
           Servicios generales del hotel
         </span>
-        <EditableTagList
+        <ServiciosDropdown
           items={amenitiesGenerales}
           onChange={(items) => {
             setAmenitiesGenerales(items);
             setOk(false);
           }}
-          placeholder="Ej: Cochera propia, WiFi…"
-          emptyText="Sin servicios cargados todavía."
         />
       </div>
 

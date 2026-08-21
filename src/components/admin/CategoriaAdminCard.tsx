@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import { CategoriaConDisponibilidad, Habitacion, TurnoHoras } from "@/lib/types";
-import EditableTagList from "./EditableTagList";
 import HabitacionesEditor from "./HabitacionesEditor";
+import ServiciosDropdown from "./ServiciosDropdown";
 
 export default function CategoriaAdminCard({
   hotelId,
@@ -212,14 +212,12 @@ export default function CategoriaAdminCard({
         <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
           Servicios de esta habitación
         </span>
-        <EditableTagList
+        <ServiciosDropdown
           items={amenities}
           onChange={(items) => {
             setAmenities(items);
             setOk(false);
           }}
-          placeholder="Ej: Jacuzzi, Minibar…"
-          emptyText="Sin servicios cargados todavía."
         />
       </div>
 
