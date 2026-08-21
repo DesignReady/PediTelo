@@ -190,6 +190,7 @@ export default function HomeClient() {
               onChange={setServicios}
               opciones={SERVICIOS_FILTRO}
               placeholderVacio="Cualquier servicio"
+              permitirPersonalizado={false}
             />
           </div>
         </div>
