@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mutateDB } from "@/lib/store";
+import { liberarHabitacion } from "@/lib/habitaciones";
 import { ReservaEstado } from "@/lib/types";
 import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
@@ -34,7 +35,7 @@ export async function PATCH(
         const hotel = db.hotels.find((h) => h.id === r.hotelId);
         const categoria = hotel?.categorias.find((c) => c.id === r.categoriaId);
         if (categoria) {
-          categoria.disponibles = Math.min(categoria.totalHabitaciones, categoria.disponibles + 1);
+          liberarHabitacion(categoria, r.habitacionId);
         }
       }
 

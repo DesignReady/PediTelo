@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generarCodigo, generarId, liberarReservasVencidas, mutateDB } from "@/lib/store";
+import { ocuparHabitacion } from "@/lib/habitaciones";
 import { Reserva, TurnoHoras } from "@/lib/types";
 
 interface CrearReservaBody {
@@ -35,7 +36,8 @@ export async function POST(req: NextRequest) {
       const turno = categoria.turnos.find((t) => t.horas === turnoHoras && t.activo);
       if (!turno) throw new Error("Ese turno no está disponible para esta categoría");
 
-      if (categoria.disponibles <= 0) {
+      const habitacion = ocuparHabitacion(categoria);
+      if (!habitacion) {
         throw new Error("Justo se acaba de ocupar la última habitación disponible");
       }
 
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
         codigo: generarCodigo(),
         hotelId: hotel.id,
         categoriaId: categoria.id,
+        habitacionId: habitacion.id,
         turnoHoras: turnoHoras as TurnoHoras,
         precio: turno.precio,
         clienteNombre: clienteNombre.trim(),
@@ -56,7 +59,6 @@ export async function POST(req: NextRequest) {
         creada: now.toISOString(),
       };
       db.reservas.push(nueva);
-      categoria.disponibles -= 1;
 
       return {
         reserva: nueva,

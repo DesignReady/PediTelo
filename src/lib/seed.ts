@@ -1,4 +1,4 @@
-import { Categoria, Comentario, DB, Hotel, TurnoHoras } from "./types";
+import { Categoria, Comentario, DB, Habitacion, Hotel, TurnoHoras } from "./types";
 
 let uid = 0;
 function id(prefix: string): string {
@@ -24,11 +24,21 @@ function reglasDefault(): string[] {
   ];
 }
 
+/** Numeración estilo hotel real: piso 1 → 101,102…, piso 2 → 201,202…, etc. */
+function habitaciones(piso: number, cantidad: number): Habitacion[] {
+  const out: Habitacion[] = [];
+  for (let i = 1; i <= cantidad; i++) {
+    out.push({ id: id("hab"), numero: String(piso * 100 + i), disponible: true });
+  }
+  return out;
+}
+
 function cat(
+  piso: number,
   nombre: string,
   descripcion: string,
   amenities: string[],
-  totalHabitaciones: number,
+  cantidad: number,
   precios: [number, number, number]
 ): Categoria {
   return {
@@ -37,8 +47,9 @@ function cat(
     descripcion,
     amenities,
     foto: null,
-    totalHabitaciones,
-    disponibles: totalHabitaciones,
+    habitaciones: habitaciones(piso, cantidad),
+    totalHabitaciones: cantidad,
+    disponibles: cantidad,
     turnos: turnos(...precios),
   };
 }
@@ -63,9 +74,9 @@ export function seedHotels(): Hotel[] {
       amenitiesGenerales: ["Cochera propia", "Ingreso discreto", "WiFi", "Seguridad 24h"],
       abierto: true,
       categorias: [
-        cat("Standard", "Habitación climatizada con TV y frigobar.", ["Aire acondicionado", "TV cable", "Frigobar"], 6, [9000, 15000, 21000]),
-        cat("Suite Jacuzzi", "Hidromasaje doble, iluminación LED y minibar.", ["Jacuzzi", "Minibar", "Cama redonda", "TV cable", "Parlantes"], 4, [14000, 22000, 30000]),
-        cat("Premium", "La suite más grande, con cochera reservada.", ["Jacuzzi", "Cochera reservada", "Cama redonda", "Sonido bluetooth", "Sillón", "Servicios de streaming"], 2, [18000, 27000, 36000]),
+        cat(1, "Standard", "Habitación climatizada con TV y frigobar.", ["Aire acondicionado", "TV cable", "Frigobar"], 6, [9000, 15000, 21000]),
+        cat(2, "Suite Jacuzzi", "Hidromasaje doble, iluminación LED y minibar.", ["Jacuzzi", "Minibar", "Cama redonda", "TV cable", "Parlantes"], 4, [14000, 22000, 30000]),
+        cat(3, "Premium", "La suite más grande, con cochera reservada.", ["Jacuzzi", "Cochera reservada", "Cama redonda", "Sonido bluetooth", "Sillón", "Servicios de streaming"], 2, [18000, 27000, 36000]),
       ],
     },
     {
@@ -86,8 +97,8 @@ export function seedHotels(): Hotel[] {
       amenitiesGenerales: ["Cochera propia", "Room service", "WiFi", "Ingreso por control remoto"],
       abierto: true,
       categorias: [
-        cat("Standard", "Habitación cómoda ideal para una escapada corta.", ["Aire acondicionado", "TV cable"], 5, [9500, 15500, 21500]),
-        cat("Suite Jacuzzi", "Hidromasaje panorámico y decoración premium.", ["Jacuzzi", "Minibar", "Vista panorámica", "Servicios de streaming"], 3, [15000, 23000, 31000]),
+        cat(1, "Standard", "Habitación cómoda ideal para una escapada corta.", ["Aire acondicionado", "TV cable"], 5, [9500, 15500, 21500]),
+        cat(2, "Suite Jacuzzi", "Hidromasaje panorámico y decoración premium.", ["Jacuzzi", "Minibar", "Vista panorámica", "Servicios de streaming"], 3, [15000, 23000, 31000]),
       ],
     },
     {
@@ -108,8 +119,8 @@ export function seedHotels(): Hotel[] {
       amenitiesGenerales: ["Cochera propia", "Ingreso discreto", "WiFi"],
       abierto: true,
       categorias: [
-        cat("Standard", "Habitación funcional recién renovada.", ["Aire acondicionado", "TV cable", "Ducha escocesa"], 8, [8000, 13500, 19000]),
-        cat("Suite Temática", "Ambientación especial con luces y espejos.", ["Espejos", "Luces LED", "Cama redonda"], 3, [12000, 19000, 26000]),
+        cat(1, "Standard", "Habitación funcional recién renovada.", ["Aire acondicionado", "TV cable", "Ducha escocesa"], 8, [8000, 13500, 19000]),
+        cat(2, "Suite Temática", "Ambientación especial con luces y espejos.", ["Espejos", "Luces LED", "Cama redonda"], 3, [12000, 19000, 26000]),
       ],
     },
     {
@@ -130,8 +141,8 @@ export function seedHotels(): Hotel[] {
       amenitiesGenerales: ["Cochera propia", "WiFi", "Seguridad 24h"],
       abierto: true,
       categorias: [
-        cat("Standard", "Habitación clásica, ideal relación precio-calidad.", ["Aire acondicionado", "TV"], 7, [7500, 12500, 17500]),
-        cat("Suite Jacuzzi", "Hidromasaje y minibar surtido.", ["Jacuzzi", "Minibar"], 2, [13000, 20000, 27000]),
+        cat(1, "Standard", "Habitación clásica, ideal relación precio-calidad.", ["Aire acondicionado", "TV"], 7, [7500, 12500, 17500]),
+        cat(2, "Suite Jacuzzi", "Hidromasaje y minibar surtido.", ["Jacuzzi", "Minibar"], 2, [13000, 20000, 27000]),
       ],
     },
     {
@@ -152,8 +163,8 @@ export function seedHotels(): Hotel[] {
       amenitiesGenerales: ["Cochera propia", "Ingreso discreto", "WiFi"],
       abierto: true,
       categorias: [
-        cat("Standard", "Habitación amplia con buena ventilación.", ["Aire acondicionado", "TV cable"], 6, [7000, 11500, 16000]),
-        cat("Premium", "La mejor opción de la casa, con cochera propia.", ["Jacuzzi", "Cochera reservada", "Minibar"], 2, [13500, 21000, 28000]),
+        cat(1, "Standard", "Habitación amplia con buena ventilación.", ["Aire acondicionado", "TV cable"], 6, [7000, 11500, 16000]),
+        cat(2, "Premium", "La mejor opción de la casa, con cochera propia.", ["Jacuzzi", "Cochera reservada", "Minibar"], 2, [13500, 21000, 28000]),
       ],
     },
     {
@@ -174,8 +185,8 @@ export function seedHotels(): Hotel[] {
       amenitiesGenerales: ["Cochera propia", "WiFi"],
       abierto: true,
       categorias: [
-        cat("Standard", "Habitación simple y prolija.", ["Aire acondicionado", "TV"], 5, [6500, 11000, 15500]),
-        cat("Suite Jacuzzi", "Hidromasaje con cromoterapia.", ["Jacuzzi", "Cromoterapia"], 2, [11500, 18000, 24500]),
+        cat(1, "Standard", "Habitación simple y prolija.", ["Aire acondicionado", "TV"], 5, [6500, 11000, 15500]),
+        cat(2, "Suite Jacuzzi", "Hidromasaje con cromoterapia.", ["Jacuzzi", "Cromoterapia"], 2, [11500, 18000, 24500]),
       ],
     },
     {
@@ -196,9 +207,9 @@ export function seedHotels(): Hotel[] {
       amenitiesGenerales: ["Cochera propia", "Room service", "WiFi", "Seguridad 24h"],
       abierto: true,
       categorias: [
-        cat("Standard", "Habitación moderna con buena luz natural.", ["Aire acondicionado", "TV cable"], 5, [9800, 16000, 22000]),
-        cat("Suite Jacuzzi", "Hidromasaje con vista a jardín interno.", ["Jacuzzi", "Jardín interno", "Minibar"], 3, [15500, 24000, 32000]),
-        cat("Premium", "Suite más exclusiva, cochera cerrada individual.", ["Jacuzzi", "Cochera individual", "Sonido bluetooth", "Minibar", "Barra para bailar", "Sillón"], 1, [19500, 29000, 38000]),
+        cat(1, "Standard", "Habitación moderna con buena luz natural.", ["Aire acondicionado", "TV cable"], 5, [9800, 16000, 22000]),
+        cat(2, "Suite Jacuzzi", "Hidromasaje con vista a jardín interno.", ["Jacuzzi", "Jardín interno", "Minibar"], 3, [15500, 24000, 32000]),
+        cat(3, "Premium", "Suite más exclusiva, cochera cerrada individual.", ["Jacuzzi", "Cochera individual", "Sonido bluetooth", "Minibar", "Barra para bailar", "Sillón"], 1, [19500, 29000, 38000]),
       ],
     },
     {
@@ -219,8 +230,8 @@ export function seedHotels(): Hotel[] {
       amenitiesGenerales: ["Cochera propia", "Ingreso discreto", "WiFi"],
       abierto: true,
       categorias: [
-        cat("Standard", "Habitación cómoda con ambientación cálida.", ["Aire acondicionado", "TV cable"], 6, [7200, 12000, 16800]),
-        cat("Suite Temática", "Decoración especial y cama circular.", ["Cama redonda", "Luces LED"], 3, [11800, 18500, 25000]),
+        cat(1, "Standard", "Habitación cómoda con ambientación cálida.", ["Aire acondicionado", "TV cable"], 6, [7200, 12000, 16800]),
+        cat(2, "Suite Temática", "Decoración especial y cama circular.", ["Cama redonda", "Luces LED"], 3, [11800, 18500, 25000]),
       ],
     },
   ];

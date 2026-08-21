@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mutateDB } from "@/lib/store";
+import { generarId, mutateDB } from "@/lib/store";
+import { sincronizarConteo } from "@/lib/habitaciones";
 import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
 interface PatchCategoriaBody {
   nombre?: string;
   descripcion?: string;
   amenities?: string[];
-  totalHabitaciones?: number;
-  disponibles?: number;
+  habitaciones?: { id?: string; numero?: string; disponible?: boolean }[];
   turnos?: { horas: number; precio?: number; activo?: boolean }[];
 }
 
@@ -43,15 +43,27 @@ export async function PATCH(
         cat.amenities = body.amenities.map((a) => a.trim()).filter(Boolean);
       }
 
-      if (typeof body.totalHabitaciones === "number" && body.totalHabitaciones >= 0) {
-        cat.totalHabitaciones = Math.floor(body.totalHabitaciones);
-        if (cat.disponibles > cat.totalHabitaciones) {
-          cat.disponibles = cat.totalHabitaciones;
+      if (Array.isArray(body.habitaciones)) {
+        const existentesIds = new Set(cat.habitaciones.map((h) => h.id));
+        const idsQueQuedan = new Set(
+          body.habitaciones
+            .map((h) => h.id)
+            .filter((hid): hid is string => !!hid && existentesIds.has(hid))
+        );
+        const quitadas = cat.habitaciones.filter((h) => !idsQueQuedan.has(h.id));
+        const quitaConReservaActiva = quitadas.some((h) =>
+          db.reservas.some((r) => r.habitacionId === h.id && r.estado === "activa")
+        );
+        if (quitaConReservaActiva) {
+          throw new Error("No se puede quitar una habitación con una reserva activa");
         }
-      }
 
-      if (typeof body.disponibles === "number" && body.disponibles >= 0) {
-        cat.disponibles = Math.min(cat.totalHabitaciones, Math.floor(body.disponibles));
+        cat.habitaciones = body.habitaciones.map((h) => ({
+          id: h.id && existentesIds.has(h.id) ? h.id : generarId("hab"),
+          numero: h.numero?.trim() || "S/N",
+          disponible: h.disponible !== false,
+        }));
+        sincronizarConteo(cat);
       }
 
       if (Array.isArray(body.turnos)) {

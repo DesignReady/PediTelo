@@ -6,12 +6,20 @@ export interface TurnoPrecio {
   activo: boolean;
 }
 
+export interface Habitacion {
+  id: string;
+  numero: string;
+  disponible: boolean;
+}
+
 export interface Categoria {
   id: string;
   nombre: string;
   descripcion: string;
   amenities: string[];
   foto: string | null;
+  habitaciones: Habitacion[];
+  /** Derivados de `habitaciones`, se recalculan en cada cambio (ver lib/habitaciones.ts). */
   totalHabitaciones: number;
   disponibles: number;
   turnos: TurnoPrecio[];
@@ -43,6 +51,7 @@ export interface Reserva {
   codigo: string;
   hotelId: string;
   categoriaId: string;
+  habitacionId: string | null;
   turnoHoras: TurnoHoras;
   precio: number;
   clienteNombre: string;

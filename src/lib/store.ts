@@ -3,6 +3,7 @@ import path from "path";
 import { DB, Reserva } from "./types";
 import { seedDB, seedHotels } from "./seed";
 import { isNetlifyRuntime } from "./env";
+import { liberarHabitacion, sincronizarConteo } from "./habitaciones";
 
 // En Netlify las funciones corren en un filesystem de solo lectura (no persiste
 // entre invocaciones), así que ahí usamos Netlify Blobs. En cualquier otro lado
@@ -41,6 +42,26 @@ function normalizar(db: DB): DB {
       const base = porSlug.get(h.slug);
       if (h.descripcion === undefined) h.descripcion = base?.descripcion ?? "";
       if (h.reglas === undefined) h.reglas = base?.reglas ?? [];
+    }
+  }
+
+  // Hoteles guardados antes de tener habitaciones individuales: generamos
+  // filas numeradas 101, 102… a partir del total que ya tenían, marcando
+  // como ocupadas las que hagan falta para mantener el mismo conteo de
+  // "disponibles" que ya estaba persistido.
+  for (const h of db.hotels) {
+    for (const c of h.categorias) {
+      if (!Array.isArray(c.habitaciones)) {
+        const total = c.totalHabitaciones ?? 0;
+        const libres = Math.min(c.disponibles ?? total, total);
+        const ocupadas = total - libres;
+        c.habitaciones = Array.from({ length: total }, (_, i) => ({
+          id: generarId("hab"),
+          numero: String(100 + i + 1),
+          disponible: i >= ocupadas,
+        }));
+        sincronizarConteo(c);
+      }
     }
   }
 
@@ -106,7 +127,7 @@ export function liberarReservasVencidas(db: DB, at: Date = new Date()): void {
       const hotel = db.hotels.find((h) => h.id === r.hotelId);
       const categoria = hotel?.categorias.find((c) => c.id === r.categoriaId);
       if (categoria) {
-        categoria.disponibles = Math.min(categoria.totalHabitaciones, categoria.disponibles + 1);
+        liberarHabitacion(categoria, r.habitacionId);
       }
     }
   }

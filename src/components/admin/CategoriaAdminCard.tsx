@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CategoriaConDisponibilidad, TurnoHoras } from "@/lib/types";
+import { CategoriaConDisponibilidad, Habitacion, TurnoHoras } from "@/lib/types";
 import EditableTagList from "./EditableTagList";
+import HabitacionesEditor from "./HabitacionesEditor";
 
 export default function CategoriaAdminCard({
   hotelId,
@@ -22,19 +23,18 @@ export default function CategoriaAdminCard({
   const [nombre, setNombre] = useState(categoria.nombre);
   const [descripcion, setDescripcion] = useState(categoria.descripcion);
   const [amenities, setAmenities] = useState(categoria.amenities);
-  const [total, setTotal] = useState(categoria.totalHabitaciones);
-  const [disponibles, setDisponibles] = useState(categoria.disponibles);
+  const [habitaciones, setHabitaciones] = useState<Habitacion[]>(categoria.habitaciones);
   const [turnos, setTurnos] = useState(categoria.turnos);
   const [guardando, setGuardando] = useState(false);
   const [ok, setOk] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
 
   if (idRef.current !== categoria.id) {
     idRef.current = categoria.id;
     setNombre(categoria.nombre);
     setDescripcion(categoria.descripcion);
     setAmenities(categoria.amenities);
-    setTotal(categoria.totalHabitaciones);
-    setDisponibles(categoria.disponibles);
+    setHabitaciones(categoria.habitaciones);
     setTurnos(categoria.turnos);
   }
 
@@ -46,6 +46,8 @@ export default function CategoriaAdminCard({
   const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [errorBorrado, setErrorBorrado] = useState<string | null>(null);
+
+  const libres = habitaciones.filter((h) => h.disponible).length;
 
   async function eliminar() {
     setEliminando(true);
@@ -74,21 +76,31 @@ export default function CategoriaAdminCard({
   async function guardar() {
     setGuardando(true);
     setOk(false);
+    setErrorGuardado(null);
     try {
-      const disponiblesClamped = Math.min(disponibles, total);
-      await fetch(`/api/admin/hotels/${hotelId}/categorias/${categoria.id}`, {
+      const res = await fetch(`/api/admin/hotels/${hotelId}/categorias/${categoria.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre,
           descripcion,
           amenities,
-          totalHabitaciones: total,
-          disponibles: disponiblesClamped,
+          habitaciones: habitaciones.map((h) => ({
+            id: h.id.startsWith("temp_") ? undefined : h.id,
+            numero: h.numero,
+            disponible: h.disponible,
+          })),
           turnos: turnos.map((t) => ({ horas: t.horas, precio: t.precio, activo: t.activo })),
         }),
       });
-      setDisponibles(disponiblesClamped);
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorGuardado(data.error ?? "No se pudo guardar");
+        return;
+      }
+      if (data.categoria?.habitaciones) {
+        setHabitaciones(data.categoria.habitaciones);
+      }
       setOk(true);
       onGuardado();
     } finally {
@@ -164,41 +176,14 @@ export default function CategoriaAdminCard({
               placeholder="Nombre de la categoría"
               className="rounded-lg border border-neutral-200 px-2 py-1 text-sm font-semibold text-neutral-800 focus:border-pink-400 focus:outline-none"
             />
-            <span className="rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-700">
-              Reservas activas: {categoria.ocupadas}
-            </span>
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-4">
-            <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
-              Habitaciones totales
-              <input
-                type="number"
-                min={0}
-                value={total}
-                onChange={(e) => {
-                  const nuevoTotal = Math.max(0, Number(e.target.value));
-                  setTotal(nuevoTotal);
-                  setDisponibles((d) => Math.min(d, nuevoTotal));
-                  setOk(false);
-                }}
-                className="w-20 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:border-pink-400 focus:outline-none"
-              />
-            </label>
-            <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
-              Disponibles ahora
-              <input
-                type="number"
-                min={0}
-                max={total}
-                value={disponibles}
-                onChange={(e) => {
-                  setDisponibles(Math.max(0, Math.min(total, Number(e.target.value))));
-                  setOk(false);
-                }}
-                className="w-20 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:border-pink-400 focus:outline-none"
-              />
-            </label>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                {libres} de {habitaciones.length} libres
+              </span>
+              <span className="rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-700">
+                Reservas activas: {categoria.ocupadas}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -235,6 +220,19 @@ export default function CategoriaAdminCard({
           }}
           placeholder="Ej: Jacuzzi, Minibar…"
           emptyText="Sin servicios cargados todavía."
+        />
+      </div>
+
+      <div className="mt-4">
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+          Habitaciones de esta categoría
+        </span>
+        <HabitacionesEditor
+          habitaciones={habitaciones}
+          onChange={(h) => {
+            setHabitaciones(h);
+            setOk(false);
+          }}
         />
       </div>
 
@@ -305,6 +303,9 @@ export default function CategoriaAdminCard({
           </button>
         )}
       </div>
+      {errorGuardado && (
+        <p className="mt-2 text-xs font-medium text-red-600">{errorGuardado}</p>
+      )}
       {errorBorrado && (
         <p className="mt-2 text-xs font-medium text-red-600">{errorBorrado}</p>
       )}
