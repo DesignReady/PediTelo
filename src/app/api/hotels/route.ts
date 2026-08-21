@@ -70,7 +70,14 @@ export async function GET(req: NextRequest) {
       hotels = hotels.filter((h) => h.abierto && h.totalDisponibles > 0);
     }
 
-    hotels.sort((a, b) => (a.precioDesde ?? Infinity) - (b.precioDesde ?? Infinity));
+    // Los cerrados o sin disponibilidad se muestran igual (para que el
+    // huésped sepa que el lugar existe), pero se ordenan al final.
+    hotels.sort((a, b) => {
+      const aDisponible = a.abierto && a.totalDisponibles > 0;
+      const bDisponible = b.abierto && b.totalDisponibles > 0;
+      if (aDisponible !== bDisponible) return aDisponible ? -1 : 1;
+      return (a.precioDesde ?? Infinity) - (b.precioDesde ?? Infinity);
+    });
 
     const zonas = Array.from(new Set(db.hotels.map((h) => h.zona))).sort();
 

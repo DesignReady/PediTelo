@@ -18,7 +18,11 @@ const BLOB_KEY = "db.json";
 let blobStorePromise: ReturnType<typeof importBlobStore> | null = null;
 async function importBlobStore() {
   const { getStore } = await import("@netlify/blobs");
-  return getStore(BLOB_STORE_NAME);
+  // Por defecto Netlify Blobs sirve lecturas desde el edge con hasta 60s de
+  // desfasaje ("eventual consistency"). Eso hacía que, justo después de
+  // guardar un cambio (ej. abrir/cerrar el hotel), la siguiente lectura
+  // trajera el valor viejo y la UI pareciera "revertir sola" el cambio.
+  return getStore(BLOB_STORE_NAME, { consistency: "strong" });
 }
 function getBlobStore() {
   if (!blobStorePromise) blobStorePromise = importBlobStore();

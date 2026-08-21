@@ -30,7 +30,7 @@ export default function HomeClient() {
 
   const [hotels, setHotels] = useState<HotelConDisponibilidad[]>([]);
   const [zonas, setZonas] = useState<string[]>([]);
-  const [soloDisponibles, setSoloDisponibles] = useState(true);
+  const [soloDisponibles, setSoloDisponibles] = useState(false);
   const [zona, setZona] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

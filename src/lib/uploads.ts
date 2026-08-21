@@ -10,7 +10,7 @@ const BLOB_STORE_NAME = "peditelo-uploads";
 let blobStorePromise: ReturnType<typeof importBlobStore> | null = null;
 async function importBlobStore() {
   const { getStore } = await import("@netlify/blobs");
-  return getStore(BLOB_STORE_NAME);
+  return getStore(BLOB_STORE_NAME, { consistency: "strong" });
 }
 function getBlobStore() {
   if (!blobStorePromise) blobStorePromise = importBlobStore();
