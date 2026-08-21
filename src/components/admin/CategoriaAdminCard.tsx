@@ -8,10 +8,12 @@ export default function CategoriaAdminCard({
   hotelId,
   categoria,
   onGuardado,
+  onEliminada,
 }: {
   hotelId: string;
   categoria: CategoriaConDisponibilidad;
   onGuardado: () => void;
+  onEliminada: () => void;
 }) {
   // Solo re-sincronizamos el formulario cuando cambia de categoría (otro hotel/id),
   // nunca en cada refresco automático: si no, el polling pisa lo que el admin
@@ -40,6 +42,29 @@ export default function CategoriaAdminCard({
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [errorFoto, setErrorFoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
+  const [errorBorrado, setErrorBorrado] = useState<string | null>(null);
+
+  async function eliminar() {
+    setEliminando(true);
+    setErrorBorrado(null);
+    try {
+      const res = await fetch(`/api/admin/hotels/${hotelId}/categorias/${categoria.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorBorrado(data.error ?? "No se pudo eliminar");
+        setConfirmandoBorrado(false);
+        return;
+      }
+      onEliminada();
+    } finally {
+      setEliminando(false);
+    }
+  }
 
   function actualizarTurno(horas: TurnoHoras, cambios: Partial<{ precio: number; activo: boolean }>) {
     setTurnos((prev) => prev.map((t) => (t.horas === horas ? { ...t, ...cambios } : t)));
@@ -242,16 +267,47 @@ export default function CategoriaAdminCard({
         ))}
       </div>
 
-      <div className="mt-4 flex items-center gap-3">
-        <button
-          onClick={guardar}
-          disabled={guardando}
-          className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
-        >
-          {guardando ? "Guardando…" : "Guardar cambios"}
-        </button>
-        {ok && <span className="text-xs font-medium text-emerald-600">Guardado ✓</span>}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={guardar}
+            disabled={guardando}
+            className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
+          >
+            {guardando ? "Guardando…" : "Guardar cambios"}
+          </button>
+          {ok && <span className="text-xs font-medium text-emerald-600">Guardado ✓</span>}
+        </div>
+
+        {confirmandoBorrado ? (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-neutral-500">¿Eliminar esta categoría?</span>
+            <button
+              onClick={eliminar}
+              disabled={eliminando}
+              className="rounded-lg bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            >
+              {eliminando ? "Eliminando…" : "Sí, eliminar"}
+            </button>
+            <button
+              onClick={() => setConfirmandoBorrado(false)}
+              className="rounded-lg px-3 py-1.5 font-medium text-neutral-500 hover:bg-neutral-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmandoBorrado(true)}
+            className="text-xs font-semibold text-red-500 hover:text-red-700"
+          >
+            Eliminar categoría
+          </button>
+        )}
       </div>
+      {errorBorrado && (
+        <p className="mt-2 text-xs font-medium text-red-600">{errorBorrado}</p>
+      )}
     </div>
   );
 }

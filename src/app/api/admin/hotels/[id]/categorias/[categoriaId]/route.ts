@@ -78,3 +78,40 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string; categoriaId: string }> }
+) {
+  const { id, categoriaId } = await params;
+
+  const sesion = await obtenerSesionDesdeRequest(req);
+  if (!sesion || sesion.hotelId !== id) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  try {
+    await mutateDB((db) => {
+      const hotel = db.hotels.find((h) => h.id === id);
+      if (!hotel) throw new Error("Hotel no encontrado");
+      const cat = hotel.categorias.find((c) => c.id === categoriaId);
+      if (!cat) throw new Error("Categoría no encontrada");
+
+      const tieneReservasActivas = db.reservas.some(
+        (r) => r.categoriaId === categoriaId && r.estado === "activa"
+      );
+      if (tieneReservasActivas) {
+        throw new Error("No se puede eliminar: tiene reservas activas en este momento");
+      }
+
+      hotel.categorias = hotel.categorias.filter((c) => c.id !== categoriaId);
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Error" },
+      { status: 400 }
+    );
+  }
+}

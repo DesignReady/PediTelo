@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { HotelConDisponibilidad, Reserva } from "@/lib/types";
 import CategoriaAdminCard from "./CategoriaAdminCard";
 import HotelInfoCard from "./HotelInfoCard";
+import NuevaCategoriaForm from "./NuevaCategoriaForm";
 import ReservasTable from "./ReservasTable";
 
 export default function AdminClient({ hotelId }: { hotelId: string }) {
@@ -146,8 +147,13 @@ export default function AdminClient({ hotelId }: { hotelId: string }) {
                 hotelId={hotel.id}
                 categoria={cat}
                 onGuardado={cargarDetalle}
+                onEliminada={cargarDetalle}
               />
             ))}
+          </div>
+
+          <div className="mt-4">
+            <NuevaCategoriaForm hotelId={hotel.id} onCreada={cargarDetalle} />
           </div>
 
           <h2 className="mt-8 mb-3 text-lg font-bold text-neutral-800">Reservas activas</h2>
