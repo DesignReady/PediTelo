@@ -37,44 +37,32 @@ export default function HabitacionesEditor({
       {habitaciones.length === 0 && (
         <p className="text-xs text-neutral-300">Todavía no cargaste ninguna habitación.</p>
       )}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {habitaciones.map((h) => (
           <div
             key={h.id}
-            className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 px-3 py-2"
+            className="relative flex flex-col items-center gap-1.5 rounded-xl border border-neutral-200 py-3"
           >
-            <label className="flex items-center gap-1.5">
-              <span className="text-xs text-neutral-400">Hab.</span>
-              <input
-                value={h.numero}
-                onChange={(e) => actualizar(h.id, { numero: e.target.value })}
-                aria-label="Número de habitación"
-                className="w-16 rounded-lg border border-neutral-200 px-2 py-1 text-sm font-semibold text-neutral-800 focus:border-pink-400 focus:outline-none"
-              />
-            </label>
+            <button
+              type="button"
+              onClick={() => quitar(h.id)}
+              aria-label={`Quitar habitación ${h.numero}`}
+              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-[11px] leading-none text-neutral-400 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            >
+              ×
+            </button>
 
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-xs font-medium ${
-                  h.disponible ? "text-emerald-600" : "text-neutral-400"
-                }`}
-              >
-                {h.disponible ? "Libre" : "Ocupada"}
-              </span>
-              <ToggleSwitch
-                checked={h.disponible}
-                onChange={(v) => actualizar(h.id, { disponible: v })}
-                label={`Habitación ${h.numero} disponible`}
-              />
-              <button
-                type="button"
-                onClick={() => quitar(h.id)}
-                aria-label={`Quitar habitación ${h.numero}`}
-                className="text-neutral-300 hover:text-red-500"
-              >
-                ×
-              </button>
-            </div>
+            <input
+              value={h.numero}
+              onChange={(e) => actualizar(h.id, { numero: e.target.value })}
+              aria-label="Número de habitación"
+              className="w-16 rounded-lg border-none bg-transparent text-center text-lg font-bold text-neutral-800 focus:outline-none focus:ring-1 focus:ring-pink-300"
+            />
+            <ToggleSwitch
+              checked={h.disponible}
+              onChange={(v) => actualizar(h.id, { disponible: v })}
+              label={`Habitación ${h.numero} disponible`}
+            />
           </div>
         ))}
       </div>
@@ -82,7 +70,7 @@ export default function HabitacionesEditor({
       <button
         type="button"
         onClick={agregar}
-        className="mt-2 w-full rounded-lg border border-dashed border-pink-200 py-2 text-xs font-semibold text-pink-600 hover:bg-pink-50"
+        className="mt-3 w-full rounded-lg border border-dashed border-pink-200 py-2 text-xs font-semibold text-pink-600 hover:bg-pink-50"
       >
         + Agregar habitación
       </button>
