@@ -1,14 +1,18 @@
 // Esquema de la base de datos de PediTelo.
-// La conexión ya no se define acá (Prisma 7): en runtime la arma
-// lib/prisma.ts con el pooler de Supabase (DATABASE_URL), y para migraciones
-// la usa prisma.config.ts con la conexión directa (DIRECT_URL).
+// Motor de consultas clásico (binario nativo, no WASM): con el "query
+// compiler" WASM que trae Prisma 7 por defecto, Netlify intenta subir ese
+// archivo (~4MB) a su storage interno de Blobs para la función serverless,
+// y un token vencido de esa subida rompía TODAS las rutas que tocaban la
+// base. Prisma 6 con conexión directa evita ese problema por completo.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Hotel {

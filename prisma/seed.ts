@@ -2,11 +2,9 @@ import "dotenv/config";
 import { config as loadEnvLocal } from "dotenv";
 loadEnvLocal({ path: ".env.local", override: true });
 
-import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 type TurnoSeed = { horas: number; precio: number; activo: boolean };
 
