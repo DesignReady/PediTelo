@@ -6,6 +6,9 @@ import {
   passwordMaestraValida,
 } from "@/lib/auth";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   if (!passwordMaestraConfigurada()) {
     return NextResponse.json(

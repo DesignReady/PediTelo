@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { listarHotelesConDisponibilidad } from "@/lib/db";
 import { HotelConDisponibilidad } from "@/lib/types";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 function normalizar(texto: string): string {
   return texto
     .toLowerCase()

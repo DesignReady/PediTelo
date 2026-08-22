@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { esSuperadminDesdeRequest } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   if (!(await esSuperadminDesdeRequest(req))) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });

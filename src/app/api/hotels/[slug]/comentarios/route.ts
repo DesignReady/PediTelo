@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 interface CrearComentarioBody {
   nombre?: string;
   calificacion?: number;

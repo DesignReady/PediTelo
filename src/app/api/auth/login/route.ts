@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_SESION, crearTokenSesion, verificarPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 interface LoginBody {
   email?: string;
   password?: string;

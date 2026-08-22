@@ -3,6 +3,9 @@ import { actualizarEstadoReserva } from "@/lib/db";
 import { ReservaEstado } from "@/lib/types";
 import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 interface PatchReservaBody {
   estado?: ReservaEstado;
 }

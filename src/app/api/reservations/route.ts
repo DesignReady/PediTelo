@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearReserva } from "@/lib/db";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 interface CrearReservaBody {
   hotelSlug?: string;
   categoriaId?: string;

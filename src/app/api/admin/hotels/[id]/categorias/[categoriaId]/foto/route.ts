@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { borrarImagen, guardarImagen, urlImagen } from "@/lib/uploads";
 import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 const TIPOS_PERMITIDOS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/jpg": "jpg",

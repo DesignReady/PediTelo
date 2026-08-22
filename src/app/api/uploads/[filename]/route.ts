@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { leerImagen } from "@/lib/uploads";
 
+// Nunca cachear: siempre lee/escribe datos en vivo contra la base.
+export const dynamic = "force-dynamic";
+
 const CONTENT_TYPES: Record<string, string> = {
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
