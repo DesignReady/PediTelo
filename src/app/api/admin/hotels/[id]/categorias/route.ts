@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generarId, mutateDB } from "@/lib/store";
+import { prisma } from "@/lib/prisma";
 import { obtenerSesionDesdeRequest } from "@/lib/auth";
-import { Categoria, Habitacion, TurnoHoras } from "@/lib/types";
 
 interface CrearCategoriaBody {
   nombre?: string;
@@ -31,36 +30,25 @@ export async function POST(
       : 1;
 
   try {
-    const categoria = await mutateDB((db) => {
-      const hotel = db.hotels.find((h) => h.id === id);
-      if (!hotel) throw new Error("Hotel no encontrado");
+    const hotel = await prisma.hotel.findUnique({ where: { id }, select: { id: true } });
+    if (!hotel) throw new Error("Hotel no encontrado");
 
-      const habitaciones: Habitacion[] = Array.from({ length: cantidad }, (_, i) => ({
-        id: generarId("hab"),
-        numero: String(i + 1),
-        disponible: true,
-      }));
-
-      // Los turnos arrancan sin precio y desactivados: así no queda una
-      // habitación "reservable" gratis hasta que el hotel cargue precios
-      // reales y la ofrezca a propósito (igual que al editar una existente).
-      const nueva: Categoria = {
-        id: generarId("cat"),
+    // Los turnos arrancan sin precio y desactivados: así no queda una
+    // habitación "reservable" gratis hasta que el hotel cargue precios
+    // reales y la ofrezca a propósito (igual que al editar una existente).
+    const categoria = await prisma.categoria.create({
+      data: {
+        hotelId: id,
         nombre,
         descripcion: body.descripcion?.trim() ?? "",
-        amenities: [],
-        foto: null,
-        habitaciones,
-        totalHabitaciones: cantidad,
-        disponibles: cantidad,
-        turnos: [1, 3, 5].map((horas) => ({
-          horas: horas as TurnoHoras,
-          precio: 0,
-          activo: false,
-        })),
-      };
-      hotel.categorias.push(nueva);
-      return nueva;
+        habitaciones: {
+          create: Array.from({ length: cantidad }, (_, i) => ({ numero: String(i + 1) })),
+        },
+        turnos: {
+          create: [1, 3, 5].map((horas) => ({ horas, precio: 0, activo: false })),
+        },
+      },
+      include: { habitaciones: true, turnos: true },
     });
 
     return NextResponse.json({ categoria }, { status: 201 });

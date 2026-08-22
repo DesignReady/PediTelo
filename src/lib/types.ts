@@ -19,7 +19,7 @@ export interface Categoria {
   amenities: string[];
   foto: string | null;
   habitaciones: Habitacion[];
-  /** Derivados de `habitaciones`, se recalculan en cada cambio (ver lib/habitaciones.ts). */
+  /** Derivados de `habitaciones`, se recalculan en cada lectura (ver lib/db.ts). */
   totalHabitaciones: number;
   disponibles: number;
   turnos: TurnoPrecio[];
@@ -50,7 +50,7 @@ export interface Reserva {
   id: string;
   codigo: string;
   hotelId: string;
-  categoriaId: string;
+  categoriaId: string | null;
   habitacionId: string | null;
   turnoHoras: TurnoHoras;
   precio: number;

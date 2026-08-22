@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { esSuperadminDesdeRequest, generarPasswordLegible, hashPassword } from "@/lib/auth";
-import { generarId, mutateDB } from "@/lib/store";
+import { prisma } from "@/lib/prisma";
 
 interface CrearCuentaBody {
   hotelId?: string;
@@ -22,23 +22,13 @@ export async function POST(req: NextRequest) {
   const passwordHash = await hashPassword(passwordNueva);
 
   try {
-    await mutateDB((db) => {
-      const hotel = db.hotels.find((h) => h.id === body.hotelId);
-      if (!hotel) throw new Error("Hotel no encontrado");
+    const hotel = await prisma.hotel.findUnique({ where: { id: body.hotelId }, select: { id: true } });
+    if (!hotel) throw new Error("Hotel no encontrado");
 
-      const existente = db.cuentas.find((c) => c.hotelId === body.hotelId);
-      if (existente) {
-        existente.email = email;
-        existente.passwordHash = passwordHash;
-      } else {
-        db.cuentas.push({
-          id: generarId("cuenta"),
-          hotelId: body.hotelId!,
-          email,
-          passwordHash,
-          creada: new Date().toISOString(),
-        });
-      }
+    await prisma.cuentaHotel.upsert({
+      where: { hotelId: body.hotelId },
+      update: { email, passwordHash },
+      create: { hotelId: body.hotelId, email, passwordHash },
     });
 
     return NextResponse.json({ email, password: passwordNueva });

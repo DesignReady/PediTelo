@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generarId, mutateDB } from "@/lib/store";
-import { Comentario } from "@/lib/types";
+import { prisma } from "@/lib/prisma";
 
 interface CrearComentarioBody {
   nombre?: string;
@@ -26,19 +25,11 @@ export async function POST(
   }
 
   try {
-    const nuevo = await mutateDB((db) => {
-      const hotel = db.hotels.find((h) => h.slug === slug);
-      if (!hotel) throw new Error("Hotel no encontrado");
-      const comentario: Comentario = {
-        id: generarId("com"),
-        hotelId: hotel.id,
-        nombre,
-        calificacion,
-        comentario: texto,
-        creada: new Date().toISOString(),
-      };
-      db.comentarios.push(comentario);
-      return comentario;
+    const hotel = await prisma.hotel.findUnique({ where: { slug }, select: { id: true } });
+    if (!hotel) throw new Error("Hotel no encontrado");
+
+    const nuevo = await prisma.comentario.create({
+      data: { hotelId: hotel.id, nombre, calificacion, comentario: texto },
     });
 
     return NextResponse.json({ comentario: nuevo }, { status: 201 });

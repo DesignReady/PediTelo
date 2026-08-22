@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readDBSincronizada } from "@/lib/store";
-import { hotelConDisponibilidad } from "@/lib/availability";
+import { listarHotelesConDisponibilidad } from "@/lib/db";
 import { HotelConDisponibilidad } from "@/lib/types";
 
 function normalizar(texto: string): string {
@@ -26,7 +25,6 @@ function hotelTieneServicio(hotel: HotelConDisponibilidad, servicio: string): bo
 
 export async function GET(req: NextRequest) {
   try {
-    const db = await readDBSincronizada();
     const { searchParams } = new URL(req.url);
     const soloDisponibles = searchParams.get("disponible") !== "false";
     const zona = searchParams.get("zona");
@@ -40,7 +38,8 @@ export async function GET(req: NextRequest) {
       : [];
     const q = searchParams.get("q")?.trim() ?? "";
 
-    let hotels = db.hotels.map((h) => hotelConDisponibilidad(db, h));
+    const todosLosHoteles = await listarHotelesConDisponibilidad();
+    let hotels = todosLosHoteles;
 
     if (q) {
       const qNorm = normalizar(q);
@@ -79,9 +78,9 @@ export async function GET(req: NextRequest) {
       return (a.precioDesde ?? Infinity) - (b.precioDesde ?? Infinity);
     });
 
-    const zonas = Array.from(new Set(db.hotels.map((h) => h.zona))).sort();
+    const zonas = Array.from(new Set(todosLosHoteles.map((h) => h.zona))).sort();
 
-    const todosLosPrecios = db.hotels.flatMap((h) =>
+    const todosLosPrecios = todosLosHoteles.flatMap((h) =>
       h.categorias.flatMap((c) => c.turnos.map((t) => t.precio))
     );
     const rangoPrecios = {

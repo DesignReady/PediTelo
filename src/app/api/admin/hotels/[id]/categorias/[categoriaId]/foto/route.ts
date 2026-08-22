@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mutateDB } from "@/lib/store";
+import { prisma } from "@/lib/prisma";
 import { borrarImagen, guardarImagen, urlImagen } from "@/lib/uploads";
 import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
@@ -55,21 +55,20 @@ export async function POST(
   const rutaPublica = urlImagen(filename);
 
   try {
-    const categoria = await mutateDB((db) => {
-      const hotel = db.hotels.find((h) => h.id === id);
-      if (!hotel) throw new Error("Hotel no encontrado");
-      const cat = hotel.categorias.find((c) => c.id === categoriaId);
-      if (!cat) throw new Error("Categoría no encontrada");
-
-      const fotoAnterior = cat.foto;
-      cat.foto = rutaPublica;
-
-      if (fotoAnterior && fotoAnterior.startsWith("/api/uploads/")) {
-        borrarImagen(fotoAnterior.replace("/api/uploads/", ""));
-      }
-
-      return cat;
+    const anterior = await prisma.categoria.findFirst({
+      where: { id: categoriaId, hotelId: id },
+      select: { foto: true },
     });
+    if (!anterior) throw new Error("Categoría no encontrada");
+
+    const categoria = await prisma.categoria.update({
+      where: { id: categoriaId },
+      data: { foto: rutaPublica },
+    });
+
+    if (anterior.foto && anterior.foto.startsWith("/api/uploads/")) {
+      borrarImagen(anterior.foto.replace("/api/uploads/", ""));
+    }
 
     return NextResponse.json({ categoria });
   } catch (e) {

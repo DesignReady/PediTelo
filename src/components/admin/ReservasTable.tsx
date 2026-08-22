@@ -10,7 +10,7 @@ export default function ReservasTable({
   onCambio,
 }: {
   reservas: Reserva[];
-  categoriaNombre: (categoriaId: string) => string;
+  categoriaNombre: (categoriaId: string | null) => string;
   onCambio: () => void;
 }) {
   const [procesando, setProcesando] = useState<string | null>(null);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_SESION, crearTokenSesion, verificarPassword } from "@/lib/auth";
-import { readDB } from "@/lib/store";
+import { prisma } from "@/lib/prisma";
 
 interface LoginBody {
   email?: string;
@@ -16,8 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Ingresá tu email y contraseña" }, { status: 400 });
   }
 
-  const db = await readDB();
-  const cuenta = db.cuentas.find((c) => c.email === email);
+  const cuenta = await prisma.cuentaHotel.findUnique({ where: { email } });
   if (!cuenta || !(await verificarPassword(password, cuenta.passwordHash))) {
     return NextResponse.json({ error: "Email o contraseña incorrectos" }, { status: 401 });
   }

@@ -1,0 +1,190 @@
+// Esquema de la base de datos de PediTelo.
+// La conexión ya no se define acá (Prisma 7): en runtime la arma
+// lib/prisma.ts con el pooler de Supabase (DATABASE_URL), y para migraciones
+// la usa prisma.config.ts con la conexión directa (DIRECT_URL).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Hotel {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  nombre    String
+  zona      String
+  direccion String
+  descripcion String @default("")
+  rating    Float   @default(0)
+  telefono  String
+
+  colorDesde String
+  colorHasta String
+
+  amenitiesGenerales String[] @default([])
+  reglas             String[] @default([])
+
+  abierto Boolean @default(true)
+  lat     Float
+  lng     Float
+
+  // Credenciales de Mercado Pago del propio hotel: los pagos se cobran
+  // directo a su cuenta, PediTelo nunca retiene el dinero. El access token
+  // se guarda cifrado (ver lib/crypto.ts), nunca en texto plano.
+  mercadopagoAccessTokenCifrado String?
+  mercadopagoPublicKey          String?
+
+  categorias  Categoria[]
+  reservas    Reserva[]
+  comentarios Comentario[]
+  cuenta      CuentaHotel?
+
+  creada DateTime @default(now())
+}
+
+model Categoria {
+  id          String @id @default(cuid())
+  hotelId     String
+  hotel       Hotel  @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  nombre      String
+  descripcion String @default("")
+  amenities   String[] @default([])
+  foto        String?
+
+  habitaciones Habitacion[]
+  turnos       Turno[]
+  reservas     Reserva[]
+
+  orden Int @default(0)
+}
+
+model Habitacion {
+  id          String    @id @default(cuid())
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  numero      String
+  disponible  Boolean   @default(true)
+
+  reservas Reserva[]
+}
+
+model Turno {
+  id          String    @id @default(cuid())
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  horas       Int
+  precio      Int
+  activo      Boolean   @default(true)
+
+  @@unique([categoriaId, horas])
+}
+
+// Cliente que reserva. Se crea/actualiza la primera vez que alguien entra
+// con Google; el registro es obligatorio para poder reservar.
+model Usuario {
+  id       String  @id @default(cuid())
+  googleId String  @unique
+  email    String  @unique
+  nombre   String
+  fotoUrl  String?
+  telefono String?
+
+  reservas Reserva[]
+
+  creada DateTime @default(now())
+}
+
+enum ReservaEstado {
+  pendiente_pago
+  activa
+  finalizada
+  cancelada
+}
+
+enum TipoPago {
+  sena // 10% obligatorio (mínimo)
+  parcial // monto a elección del cliente
+  total
+}
+
+enum EstadoPago {
+  pendiente
+  aprobado
+  rechazado
+}
+
+model Reserva {
+  id     String @id @default(cuid())
+  // Código corto que ve el cliente y el hotel para hacer coincidir la
+  // reserva en persona (ej. "PT-7K2XQ9"). Es el mismo valor en los dos
+  // lados: nunca se genera un código distinto para cada vista.
+  codigo String @unique
+
+  hotelId String
+  hotel   Hotel  @relation(fields: [hotelId], references: [id])
+
+  // Nulos si se borra la categoría/habitación más adelante: la reserva
+  // (historial) se conserva igual, solo pierde el vínculo.
+  categoriaId String?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: SetNull)
+
+  habitacionId String?
+  habitacion   Habitacion? @relation(fields: [habitacionId], references: [id], onDelete: SetNull)
+
+  // Opcional por ahora: hasta que el login con Google esté implementado,
+  // las reservas siguen entrando sin cuenta (como hoy). Una vez que el login
+  // sea obligatorio, todo lo nuevo va a venir con usuarioId.
+  usuarioId       String?
+  usuario         Usuario? @relation(fields: [usuarioId], references: [id])
+  // Copia del nombre/teléfono al momento de reservar (además de la relación
+  // con Usuario), para que el historial no cambie si el cliente edita su perfil.
+  clienteNombre   String
+  clienteTelefono String
+
+  turnoHoras Int
+  precio     Int
+
+  // Nulos hasta que Mercado Pago esté conectado: hoy la reserva se confirma
+  // sin cobrar nada, igual que en producción.
+  tipoPago       TipoPago?
+  montoPagado    Int?
+  estadoPago     EstadoPago @default(pendiente)
+  mpPreferenceId String?
+  mpPaymentId    String?
+
+  inicio DateTime?
+  fin    DateTime?
+  // Por ahora arranca "activa" directo (sin paso de pago), igual que el
+  // flujo actual. Cuando Mercado Pago esté armado, esa ruta va a crear la
+  // reserva en "pendiente_pago" y recién pasarla a "activa" cuando el
+  // webhook confirme el cobro.
+  estado ReservaEstado @default(activa)
+
+  creada DateTime @default(now())
+
+  @@index([hotelId, estado])
+}
+
+model Comentario {
+  id           String @id @default(cuid())
+  hotelId      String
+  hotel        Hotel  @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  nombre       String
+  calificacion Int
+  comentario   String
+
+  creada DateTime @default(now())
+}
+
+model CuentaHotel {
+  id           String @id @default(cuid())
+  hotelId      String @unique
+  hotel        Hotel  @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  email        String @unique
+  passwordHash String
+
+  creada DateTime @default(now())
+}

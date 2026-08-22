@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generarId, mutateDB } from "@/lib/store";
-import { sincronizarConteo } from "@/lib/habitaciones";
+import { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
 interface PatchCategoriaBody {
@@ -25,22 +25,21 @@ export async function PATCH(
   const body = (await req.json().catch(() => ({}))) as PatchCategoriaBody;
 
   try {
-    const categoria = await mutateDB((db) => {
-      const hotel = db.hotels.find((h) => h.id === id);
-      if (!hotel) throw new Error("Hotel no encontrado");
-      const cat = hotel.categorias.find((c) => c.id === categoriaId);
+    const categoria = await prisma.$transaction(async (tx) => {
+      const cat = await tx.categoria.findFirst({
+        where: { id: categoriaId, hotelId: id },
+        include: { habitaciones: true },
+      });
       if (!cat) throw new Error("Categoría no encontrada");
 
-      if (typeof body.nombre === "string" && body.nombre.trim()) {
-        cat.nombre = body.nombre.trim();
-      }
-
-      if (typeof body.descripcion === "string") {
-        cat.descripcion = body.descripcion.trim();
-      }
-
+      const data: Prisma.CategoriaUpdateInput = {};
+      if (typeof body.nombre === "string" && body.nombre.trim()) data.nombre = body.nombre.trim();
+      if (typeof body.descripcion === "string") data.descripcion = body.descripcion.trim();
       if (Array.isArray(body.amenities)) {
-        cat.amenities = body.amenities.map((a) => a.trim()).filter(Boolean);
+        data.amenities = body.amenities.map((a) => a.trim()).filter(Boolean);
+      }
+      if (Object.keys(data).length > 0) {
+        await tx.categoria.update({ where: { id: categoriaId }, data });
       }
 
       if (Array.isArray(body.habitaciones)) {
@@ -50,36 +49,49 @@ export async function PATCH(
             .map((h) => h.id)
             .filter((hid): hid is string => !!hid && existentesIds.has(hid))
         );
-        const quitadas = cat.habitaciones.filter((h) => !idsQueQuedan.has(h.id));
-        const quitaConReservaActiva = quitadas.some((h) =>
-          db.reservas.some((r) => r.habitacionId === h.id && r.estado === "activa")
-        );
-        if (quitaConReservaActiva) {
-          throw new Error("No se puede quitar una habitación con una reserva activa");
+        const quitadasIds = cat.habitaciones
+          .filter((h) => !idsQueQuedan.has(h.id))
+          .map((h) => h.id);
+
+        if (quitadasIds.length > 0) {
+          const conReservaActiva = await tx.reserva.findFirst({
+            where: { habitacionId: { in: quitadasIds }, estado: "activa" },
+          });
+          if (conReservaActiva) {
+            throw new Error("No se puede quitar una habitación con una reserva activa");
+          }
+          await tx.habitacion.deleteMany({ where: { id: { in: quitadasIds } } });
         }
 
-        cat.habitaciones = body.habitaciones.map((h) => ({
-          id: h.id && existentesIds.has(h.id) ? h.id : generarId("hab"),
-          numero: h.numero?.trim() || "S/N",
-          disponible: h.disponible !== false,
-        }));
-        sincronizarConteo(cat);
+        for (const h of body.habitaciones) {
+          const numero = h.numero?.trim() || "S/N";
+          const disponible = h.disponible !== false;
+          if (h.id && existentesIds.has(h.id)) {
+            await tx.habitacion.update({ where: { id: h.id }, data: { numero, disponible } });
+          } else {
+            await tx.habitacion.create({ data: { categoriaId, numero, disponible } });
+          }
+        }
       }
 
       if (Array.isArray(body.turnos)) {
         for (const t of body.turnos) {
-          const existente = cat.turnos.find((x) => x.horas === t.horas);
-          if (!existente) continue;
-          if (typeof t.precio === "number" && t.precio >= 0) {
-            existente.precio = Math.floor(t.precio);
-          }
-          if (typeof t.activo === "boolean") {
-            existente.activo = t.activo;
+          const cambios: Prisma.TurnoUpdateManyMutationInput = {};
+          if (typeof t.precio === "number" && t.precio >= 0) cambios.precio = Math.floor(t.precio);
+          if (typeof t.activo === "boolean") cambios.activo = t.activo;
+          if (Object.keys(cambios).length > 0) {
+            await tx.turno.updateMany({ where: { categoriaId, horas: t.horas }, data: cambios });
           }
         }
       }
 
-      return cat;
+      return tx.categoria.findUnique({
+        where: { id: categoriaId },
+        include: {
+          habitaciones: { orderBy: { numero: "asc" } },
+          turnos: { orderBy: { horas: "asc" } },
+        },
+      });
     });
 
     return NextResponse.json({ categoria });
@@ -103,20 +115,16 @@ export async function DELETE(
   }
 
   try {
-    await mutateDB((db) => {
-      const hotel = db.hotels.find((h) => h.id === id);
-      if (!hotel) throw new Error("Hotel no encontrado");
-      const cat = hotel.categorias.find((c) => c.id === categoriaId);
+    await prisma.$transaction(async (tx) => {
+      const cat = await tx.categoria.findFirst({ where: { id: categoriaId, hotelId: id } });
       if (!cat) throw new Error("Categoría no encontrada");
 
-      const tieneReservasActivas = db.reservas.some(
-        (r) => r.categoriaId === categoriaId && r.estado === "activa"
-      );
-      if (tieneReservasActivas) {
+      const activa = await tx.reserva.findFirst({ where: { categoriaId, estado: "activa" } });
+      if (activa) {
         throw new Error("No se puede eliminar: tiene reservas activas en este momento");
       }
 
-      hotel.categorias = hotel.categorias.filter((c) => c.id !== categoriaId);
+      await tx.categoria.delete({ where: { id: categoriaId } });
     });
 
     return NextResponse.json({ ok: true });

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mutateDB } from "@/lib/store";
-import { liberarHabitacion } from "@/lib/habitaciones";
+import { actualizarEstadoReserva } from "@/lib/db";
 import { ReservaEstado } from "@/lib/types";
 import { obtenerSesionDesdeRequest } from "@/lib/auth";
 
@@ -26,22 +25,7 @@ export async function PATCH(
   }
 
   try {
-    const reserva = await mutateDB((db) => {
-      const r = db.reservas.find((x) => x.id === id);
-      if (!r) throw new Error("Reserva no encontrada");
-      if (r.hotelId !== sesion.hotelId) throw new Error("No autorizado");
-
-      if (r.estado === "activa") {
-        const hotel = db.hotels.find((h) => h.id === r.hotelId);
-        const categoria = hotel?.categorias.find((c) => c.id === r.categoriaId);
-        if (categoria) {
-          liberarHabitacion(categoria, r.habitacionId);
-        }
-      }
-
-      r.estado = body.estado as ReservaEstado;
-      return r;
-    });
+    const reserva = await actualizarEstadoReserva(id, sesion.hotelId, body.estado);
     return NextResponse.json({ reserva });
   } catch (e) {
     return NextResponse.json(
