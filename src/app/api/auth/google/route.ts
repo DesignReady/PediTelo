@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_OAUTH_STATE } from "@/lib/auth";
+import { siteUrl } from "@/lib/site";
 
 // Nunca cachear: siempre lee/escribe datos en vivo contra la base.
 export const dynamic = "force-dynamic";
@@ -16,10 +17,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Falta configurar GOOGLE_CLIENT_ID" }, { status: 500 });
   }
 
-  const { searchParams, origin } = new URL(req.url);
+  const { searchParams } = new URL(req.url);
   const next = nextSeguro(searchParams.get("next"));
   const state = crypto.randomBytes(16).toString("hex");
-  const redirectUri = `${origin}/api/auth/google/callback`;
+  const redirectUri = `${siteUrl()}/api/auth/google/callback`;
 
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", clientId);

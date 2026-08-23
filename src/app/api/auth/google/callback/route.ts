@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_CLIENTE, COOKIE_OAUTH_STATE, crearTokenCliente } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { siteUrl } from "@/lib/site";
 
 // Nunca cachear: siempre lee/escribe datos en vivo contra la base.
 export const dynamic = "force-dynamic";
@@ -18,7 +19,8 @@ interface GoogleUserInfo {
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams, origin } = new URL(req.url);
+  const origin = siteUrl();
+  const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const errorParam = searchParams.get("error");

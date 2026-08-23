@@ -9,6 +9,11 @@
 # rechace por este motivo.
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "SESSION_SECRET,SUPERADMIN_PASSWORD,MP_TOKEN_ENCRYPTION_KEY,DATABASE_URL,DIRECT_URL,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET"
+  # URL pública fija del sitio: no es secreta, se define acá para no depender
+  # del origin del request (poco confiable detrás del proxy de Netlify, a
+  # veces resuelve a la URL interna del deploy en vez del dominio público) —
+  # crítico para que el redirect_uri de Google OAuth sea siempre el mismo.
+  SITE_URL = "https://peditelo.netlify.app"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
