@@ -1,12 +1,14 @@
 [build]
   command = "npm run build"
 
-# SESSION_SECRET y SUPERADMIN_PASSWORD solo se usan del lado del servidor (nunca
-# llegan al navegador). El escáner de secretos de Netlify los detecta dentro de
-# archivos de caché interna del build (Turbopack), que no son parte de lo que se
-# le sirve a nadie. Esto no expone las variables, solo evita ese falso positivo.
+# Estas variables solo se usan del lado del servidor (nunca llegan al
+# navegador). El escáner de secretos de Netlify las detecta dentro de
+# archivos de caché interna del build (Turbopack), que no son parte de lo que
+# se le sirve a nadie. Esto no expone las variables, solo evita ese falso
+# positivo. Agregar acá cualquier variable de servidor nueva que el build
+# rechace por este motivo.
 [build.environment]
-  SECRETS_SCAN_OMIT_KEYS = "SESSION_SECRET,SUPERADMIN_PASSWORD"
+  SECRETS_SCAN_OMIT_KEYS = "SESSION_SECRET,SUPERADMIN_PASSWORD,MP_TOKEN_ENCRYPTION_KEY,DATABASE_URL,DIRECT_URL,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
