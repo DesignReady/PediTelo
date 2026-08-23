@@ -8,12 +8,27 @@ import Comentarios from "./Comentarios";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { distanciaKm, formatDistancia, urlGoogleMaps, urlWaze } from "@/lib/geo";
 
+interface UsuarioSesion {
+  usuarioId: string;
+  email: string;
+  nombre: string;
+  telefono: string | null;
+}
+
 export default function HotelDetailClient({ slug }: { slug: string }) {
   const [hotel, setHotel] = useState<HotelConDisponibilidad | null>(null);
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usuario, setUsuario] = useState<UsuarioSesion | null | undefined>(undefined);
   const { coords, estado, solicitar } = useGeolocation();
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => setUsuario(data.usuario))
+      .catch(() => setUsuario(null));
+  }, []);
 
   const cargar = useCallback(async () => {
     try {
@@ -100,6 +115,22 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
           </span>
         </div>
 
+        {usuario && (
+          <p className="mt-1 text-xs text-neutral-400">
+            Conectado como {usuario.nombre} ·{" "}
+            <button
+              type="button"
+              onClick={async () => {
+                await fetch("/api/auth/logout-cliente", { method: "POST" });
+                setUsuario(null);
+              }}
+              className="underline hover:text-neutral-600"
+            >
+              Cerrar sesión
+            </button>
+          </p>
+        )}
+
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <a
             href={urlGoogleMaps(hotel)}
@@ -177,6 +208,7 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
               key={cat.id}
               hotelSlug={hotel.slug}
               categoria={cat}
+              usuario={usuario}
               onReservado={cargar}
             />
           ))}

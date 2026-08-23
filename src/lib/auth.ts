@@ -17,6 +17,8 @@ const secretKey = () => {
 
 export const COOKIE_SESION = "pt_sesion";
 export const COOKIE_SUPERADMIN = "pt_superadmin";
+export const COOKIE_CLIENTE = "pt_cliente";
+export const COOKIE_OAUTH_STATE = "pt_oauth_state";
 
 export async function hashPassword(plano: string): Promise<string> {
   return bcrypt.hash(plano, 10);
@@ -72,6 +74,44 @@ export async function verificarTokenSuperadmin(token: string): Promise<boolean> 
   } catch {
     return false;
   }
+}
+
+export interface SesionCliente {
+  usuarioId: string;
+  email: string;
+  nombre: string;
+}
+
+export async function crearTokenCliente(payload: SesionCliente): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("90d")
+    .sign(secretKey());
+}
+
+export async function verificarTokenCliente(token: string): Promise<SesionCliente | null> {
+  try {
+    const { payload } = await jwtVerify(token, secretKey());
+    if (
+      typeof payload.usuarioId !== "string" ||
+      typeof payload.email !== "string" ||
+      typeof payload.nombre !== "string"
+    ) {
+      return null;
+    }
+    return { usuarioId: payload.usuarioId, email: payload.email, nombre: payload.nombre };
+  } catch {
+    return null;
+  }
+}
+
+export async function obtenerSesionClienteDesdeRequest(
+  req: NextRequest
+): Promise<SesionCliente | null> {
+  const token = req.cookies.get(COOKIE_CLIENTE)?.value;
+  if (!token) return null;
+  return verificarTokenCliente(token);
 }
 
 export function passwordMaestraConfigurada(): boolean {

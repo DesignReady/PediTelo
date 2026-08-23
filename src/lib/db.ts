@@ -203,6 +203,7 @@ interface CrearReservaInput {
   hotelSlug: string;
   categoriaId: string;
   turnoHoras: number;
+  usuarioId: string;
   clienteNombre: string;
   clienteTelefono: string;
 }
@@ -249,6 +250,7 @@ export async function crearReserva(input: CrearReservaInput) {
         hotelId: hotel.id,
         categoriaId: categoria.id,
         habitacionId: libre.id,
+        usuarioId: input.usuarioId,
         clienteNombre: input.clienteNombre,
         clienteTelefono: input.clienteTelefono,
         turnoHoras: input.turnoHoras,
@@ -257,6 +259,12 @@ export async function crearReserva(input: CrearReservaInput) {
         fin,
         estado: "activa",
       },
+    });
+
+    // Guardamos el teléfono en el perfil para no volver a pedirlo la próxima vez.
+    await prisma.usuario.update({
+      where: { id: input.usuarioId },
+      data: { telefono: input.clienteTelefono },
     });
 
     return {

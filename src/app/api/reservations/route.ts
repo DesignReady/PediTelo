@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearReserva } from "@/lib/db";
+import { obtenerSesionClienteDesdeRequest } from "@/lib/auth";
 
 // Nunca cachear: siempre lee/escribe datos en vivo contra la base.
 export const dynamic = "force-dynamic";
@@ -8,15 +9,22 @@ interface CrearReservaBody {
   hotelSlug?: string;
   categoriaId?: string;
   turnoHoras?: number;
-  clienteNombre?: string;
   clienteTelefono?: string;
 }
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json().catch(() => ({}))) as CrearReservaBody;
-  const { hotelSlug, categoriaId, turnoHoras, clienteNombre, clienteTelefono } = body;
+  const sesion = await obtenerSesionClienteDesdeRequest(req);
+  if (!sesion) {
+    return NextResponse.json(
+      { error: "Iniciá sesión con Google para reservar" },
+      { status: 401 }
+    );
+  }
 
-  if (!hotelSlug || !categoriaId || !turnoHoras || !clienteNombre?.trim() || !clienteTelefono?.trim()) {
+  const body = (await req.json().catch(() => ({}))) as CrearReservaBody;
+  const { hotelSlug, categoriaId, turnoHoras, clienteTelefono } = body;
+
+  if (!hotelSlug || !categoriaId || !turnoHoras || !clienteTelefono?.trim()) {
     return NextResponse.json({ error: "Faltan datos para reservar" }, { status: 400 });
   }
   if (![1, 3, 5].includes(turnoHoras)) {
@@ -28,7 +36,8 @@ export async function POST(req: NextRequest) {
       hotelSlug,
       categoriaId,
       turnoHoras,
-      clienteNombre: clienteNombre.trim(),
+      usuarioId: sesion.usuarioId,
+      clienteNombre: sesion.nombre,
       clienteTelefono: clienteTelefono.trim(),
     });
 

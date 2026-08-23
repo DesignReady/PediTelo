@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CategoriaConDisponibilidad, TurnoHoras } from "@/lib/types";
 import { formatARS, formatHora } from "@/lib/format";
+import GoogleLoginButton from "./GoogleLoginButton";
 
 interface ReservaConfirmada {
   codigo: string;
@@ -11,27 +12,39 @@ interface ReservaConfirmada {
   precio: number;
 }
 
+interface UsuarioSesion {
+  usuarioId: string;
+  email: string;
+  nombre: string;
+  telefono: string | null;
+}
+
 export default function CategoriaBooking({
   hotelSlug,
   categoria,
+  usuario,
   onReservado,
 }: {
   hotelSlug: string;
   categoria: CategoriaConDisponibilidad;
+  usuario: UsuarioSesion | null | undefined;
   onReservado: () => void;
 }) {
   const [turnoSeleccionado, setTurnoSeleccionado] = useState<TurnoHoras | null>(null);
-  const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmada, setConfirmada] = useState<ReservaConfirmada | null>(null);
 
+  useEffect(() => {
+    if (usuario?.telefono) setTelefono((prev) => prev || usuario.telefono || "");
+  }, [usuario]);
+
   const sinCupo = categoria.disponibles === 0;
 
   async function reservar(e: React.FormEvent) {
     e.preventDefault();
-    if (!turnoSeleccionado || !nombre.trim() || !telefono.trim()) return;
+    if (!turnoSeleccionado || !telefono.trim()) return;
     setEnviando(true);
     setError(null);
     try {
@@ -42,7 +55,6 @@ export default function CategoriaBooking({
           hotelSlug,
           categoriaId: categoria.id,
           turnoHoras: turnoSeleccionado,
-          clienteNombre: nombre,
           clienteTelefono: telefono,
         }),
       });
@@ -148,24 +160,27 @@ export default function CategoriaBooking({
         })}
       </div>
 
-      {turnoSeleccionado && !sinCupo && (
+      {turnoSeleccionado && !sinCupo && usuario === null && (
+        <div className="mt-4 space-y-2 border-t border-pink-50 pt-4">
+          <p className="text-xs text-neutral-500">
+            Para reservar necesitás iniciar sesión con tu cuenta de Google.
+          </p>
+          <GoogleLoginButton next={`/hotel/${hotelSlug}`} texto="Continuar con Google" />
+        </div>
+      )}
+
+      {turnoSeleccionado && !sinCupo && usuario && (
         <form onSubmit={reservar} className="mt-4 space-y-2 border-t border-pink-50 pt-4">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <input
-              required
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Tu nombre"
-              className="rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
-            />
-            <input
-              required
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="Tu teléfono"
-              className="rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
-            />
-          </div>
+          <p className="text-xs text-neutral-500">
+            Reservando como <span className="font-semibold">{usuario.nombre}</span>
+          </p>
+          <input
+            required
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            placeholder="Tu teléfono"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
+          />
           {error && <p className="text-xs font-medium text-red-600">{error}</p>}
           <button
             type="submit"
