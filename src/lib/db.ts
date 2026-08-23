@@ -18,6 +18,18 @@ export function generarCodigo(): string {
   return `PT-${s}`;
 }
 
+function generarCodigoVoucher(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < 6; i++) {
+    s += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return `PREMIO-${s}`;
+}
+
+/** Cada tantas reservas no canceladas, el usuario se gana una habitación gratis. */
+const RESERVAS_POR_PREMIO = 10;
+
 const HOTEL_INCLUDE = {
   categorias: {
     orderBy: { orden: "asc" },
@@ -206,6 +218,7 @@ interface CrearReservaInput {
   usuarioId: string;
   clienteNombre: string;
   clienteTelefono: string;
+  voucherId?: string;
 }
 
 export async function crearReserva(input: CrearReservaInput) {
@@ -225,6 +238,14 @@ export async function crearReserva(input: CrearReservaInput) {
   });
   if (!turno) throw new Error("Ese turno no está disponible para esta categoría");
 
+  if (input.voucherId) {
+    const voucher = await prisma.voucher.findFirst({
+      where: { id: input.voucherId, usuarioId: input.usuarioId },
+    });
+    if (!voucher) throw new Error("Premio no encontrado");
+    if (voucher.usado) throw new Error("Ese premio ya fue usado");
+  }
+
   // El `where: { disponible: true }` en el update funciona como control de
   // concurrencia: si dos reservas compiten por la misma habitación, el
   // update de la que llega segunda no matchea ninguna fila (count 0) y
@@ -242,6 +263,22 @@ export async function crearReserva(input: CrearReservaInput) {
     });
     if (resultado.count === 0) continue;
 
+    // Si viene con premio, lo marcamos usado con un update condicional (mismo
+    // patrón que la habitación): si dos pestañas intentan canjear el mismo
+    // premio a la vez, solo una gana.
+    let voucherAplicado = false;
+    if (input.voucherId) {
+      const resultadoVoucher = await prisma.voucher.updateMany({
+        where: { id: input.voucherId, usado: false },
+        data: { usado: true, usadoEn: new Date() },
+      });
+      if (resultadoVoucher.count === 0) {
+        await prisma.habitacion.update({ where: { id: libre.id }, data: { disponible: true } });
+        throw new Error("Ese premio ya fue usado");
+      }
+      voucherAplicado = true;
+    }
+
     const ahora = new Date();
     const fin = new Date(ahora.getTime() + input.turnoHoras * 60 * 60 * 1000);
     const reserva = await prisma.reserva.create({
@@ -254,7 +291,8 @@ export async function crearReserva(input: CrearReservaInput) {
         clienteNombre: input.clienteNombre,
         clienteTelefono: input.clienteTelefono,
         turnoHoras: input.turnoHoras,
-        precio: turno.precio,
+        precio: voucherAplicado ? 0 : turno.precio,
+        voucherId: voucherAplicado ? input.voucherId : undefined,
         inicio: ahora,
         fin,
         estado: "activa",
@@ -267,6 +305,19 @@ export async function crearReserva(input: CrearReservaInput) {
       data: { telefono: input.clienteTelefono },
     });
 
+    // Cada RESERVAS_POR_PREMIO reservas no canceladas (esta incluida), se
+    // gana un premio nuevo automáticamente.
+    let premioGanado = false;
+    const totalValidas = await prisma.reserva.count({
+      where: { usuarioId: input.usuarioId, estado: { not: "cancelada" } },
+    });
+    if (totalValidas % RESERVAS_POR_PREMIO === 0) {
+      await prisma.voucher.create({
+        data: { usuarioId: input.usuarioId, codigo: generarCodigoVoucher() },
+      });
+      premioGanado = true;
+    }
+
     return {
       reserva: mapReserva(reserva),
       hotelNombre: hotel.nombre,
@@ -274,6 +325,7 @@ export async function crearReserva(input: CrearReservaInput) {
       direccion: hotel.direccion,
       zona: hotel.zona,
       telefono: hotel.telefono,
+      premioGanado,
     };
   }
   throw new Error("Justo se acaba de ocupar la última habitación disponible");
@@ -296,4 +348,51 @@ export async function actualizarEstadoReserva(
     const actualizada = await tx.reserva.update({ where: { id }, data: { estado } });
     return mapReserva(actualizada);
   });
+}
+
+export async function obtenerVouchersDisponibles(usuarioId: string) {
+  const vouchers = await prisma.voucher.findMany({
+    where: { usuarioId, usado: false },
+    orderBy: { creada: "asc" },
+    select: { id: true, codigo: true, creada: true },
+  });
+  return vouchers.map((v) => ({ id: v.id, codigo: v.codigo, creada: v.creada.toISOString() }));
+}
+
+export async function obtenerPerfilCliente(usuarioId: string) {
+  await liberarReservasVencidas();
+
+  const [reservas, vouchers, totalValidas] = await Promise.all([
+    prisma.reserva.findMany({
+      where: { usuarioId },
+      orderBy: { creada: "desc" },
+      include: { hotel: { select: { nombre: true, slug: true } }, categoria: { select: { nombre: true } } },
+    }),
+    prisma.voucher.findMany({ where: { usuarioId }, orderBy: { creada: "desc" } }),
+    prisma.reserva.count({ where: { usuarioId, estado: { not: "cancelada" } } }),
+  ]);
+
+  const restantes = RESERVAS_POR_PREMIO - (totalValidas % RESERVAS_POR_PREMIO);
+
+  return {
+    reservas: reservas.map((r) => ({
+      ...mapReserva(r),
+      hotelNombre: r.hotel.nombre,
+      hotelSlug: r.hotel.slug,
+      categoriaNombre: r.categoria?.nombre ?? "—",
+      gratisConPremio: r.voucherId !== null,
+    })),
+    vouchers: vouchers.map((v) => ({
+      id: v.id,
+      codigo: v.codigo,
+      usado: v.usado,
+      usadoEn: v.usadoEn?.toISOString() ?? null,
+      creada: v.creada.toISOString(),
+    })),
+    progreso: {
+      totalReservas: totalValidas,
+      faltanParaPremio: totalValidas === 0 ? RESERVAS_POR_PREMIO : restantes,
+      reservasPorPremio: RESERVAS_POR_PREMIO,
+    },
+  };
 }

@@ -10,6 +10,7 @@ interface CrearReservaBody {
   categoriaId?: string;
   turnoHoras?: number;
   clienteTelefono?: string;
+  voucherId?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = (await req.json().catch(() => ({}))) as CrearReservaBody;
-  const { hotelSlug, categoriaId, turnoHoras, clienteTelefono } = body;
+  const { hotelSlug, categoriaId, turnoHoras, clienteTelefono, voucherId } = body;
 
   if (!hotelSlug || !categoriaId || !turnoHoras || !clienteTelefono?.trim()) {
     return NextResponse.json({ error: "Faltan datos para reservar" }, { status: 400 });
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
       usuarioId: sesion.usuarioId,
       clienteNombre: sesion.nombre,
       clienteTelefono: clienteTelefono.trim(),
+      voucherId: voucherId?.trim() || undefined,
     });
 
     return NextResponse.json(resultado, { status: 201 });

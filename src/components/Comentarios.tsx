@@ -49,7 +49,6 @@ export default function Comentarios({
   comentarios: Comentario[];
   onNuevoComentario: () => void;
 }) {
-  const [nombre, setNombre] = useState("");
   const [texto, setTexto] = useState("");
   const [calificacion, setCalificacion] = useState(5);
   const [enviando, setEnviando] = useState(false);
@@ -58,21 +57,20 @@ export default function Comentarios({
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
-    if (!nombre.trim() || !texto.trim()) return;
+    if (!texto.trim()) return;
     setEnviando(true);
     setError(null);
     try {
       const res = await fetch(`/api/hotels/${hotelSlug}/comentarios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, comentario: texto, calificacion }),
+        body: JSON.stringify({ comentario: texto, calificacion }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "No se pudo publicar el comentario");
         return;
       }
-      setNombre("");
       setTexto("");
       setCalificacion(5);
       setEnviado(true);
@@ -123,16 +121,10 @@ export default function Comentarios({
         className="mt-4 space-y-2 rounded-xl border border-dashed border-pink-200 bg-pink-50/40 p-4"
       >
         <p className="text-sm font-semibold text-neutral-700">Dejá tu opinión</p>
+        <p className="text-xs text-neutral-400">
+          Tu opinión se publica de forma anónima, con un nombre al azar.
+        </p>
         <Estrellas valor={calificacion} onChange={setCalificacion} />
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <input
-            required
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            placeholder="Tu nombre"
-            className="rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
-          />
-        </div>
         <textarea
           required
           value={texto}

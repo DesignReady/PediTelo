@@ -25,6 +25,15 @@ function IconMapa({ active }: { active: boolean }) {
   );
 }
 
+function IconPerfil({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={active ? 2.4 : 2}>
+      <circle cx="12" cy="8" r="3.3" />
+      <path d="M5 20c0-3.6 3.1-6.2 7-6.2s7 2.6 7 6.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function IconAdmin({ active }: { active: boolean }) {
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={active ? 2.4 : 2}>
@@ -41,6 +50,7 @@ function IconAdmin({ active }: { active: boolean }) {
 const tabs = [
   { href: "/", label: "Inicio", Icon: IconInicio },
   { href: "/mapa", label: "Mapa", Icon: IconMapa },
+  { href: "/perfil", label: "Perfil", Icon: IconPerfil },
   { href: "/admin", label: "Admin", Icon: IconAdmin },
 ];
 

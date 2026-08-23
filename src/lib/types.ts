@@ -90,6 +90,20 @@ export interface CategoriaConDisponibilidad extends Categoria {
   ocupadas: number;
 }
 
+export interface VoucherDisponible {
+  id: string;
+  codigo: string;
+  creada: string;
+}
+
+export interface UsuarioSesion {
+  usuarioId: string;
+  email: string;
+  nombre: string;
+  telefono: string | null;
+  vouchers: VoucherDisponible[];
+}
+
 export interface HotelConDisponibilidad extends Omit<Hotel, "categorias"> {
   categorias: CategoriaConDisponibilidad[];
   totalDisponibles: number;

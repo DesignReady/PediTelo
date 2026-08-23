@@ -2,18 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Comentario, HotelConDisponibilidad } from "@/lib/types";
+import { Comentario, HotelConDisponibilidad, UsuarioSesion } from "@/lib/types";
 import CategoriaBooking from "./CategoriaBooking";
 import Comentarios from "./Comentarios";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { distanciaKm, formatDistancia, urlGoogleMaps, urlWaze } from "@/lib/geo";
-
-interface UsuarioSesion {
-  usuarioId: string;
-  email: string;
-  nombre: string;
-  telefono: string | null;
-}
 
 export default function HotelDetailClient({ slug }: { slug: string }) {
   const [hotel, setHotel] = useState<HotelConDisponibilidad | null>(null);
@@ -118,6 +111,10 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
         {usuario && (
           <p className="mt-1 text-xs text-neutral-400">
             Conectado como {usuario.nombre} ·{" "}
+            <Link href="/perfil" className="underline hover:text-neutral-600">
+              Mis reservas
+            </Link>{" "}
+            ·{" "}
             <button
               type="button"
               onClick={async () => {

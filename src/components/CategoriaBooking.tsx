@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CategoriaConDisponibilidad, TurnoHoras } from "@/lib/types";
+import { CategoriaConDisponibilidad, TurnoHoras, UsuarioSesion } from "@/lib/types";
 import { formatARS, formatHora } from "@/lib/format";
 import GoogleLoginButton from "./GoogleLoginButton";
 
@@ -10,13 +10,7 @@ interface ReservaConfirmada {
   inicio: string;
   fin: string;
   precio: number;
-}
-
-interface UsuarioSesion {
-  usuarioId: string;
-  email: string;
-  nombre: string;
-  telefono: string | null;
+  premioGanado: boolean;
 }
 
 export default function CategoriaBooking({
@@ -32,9 +26,12 @@ export default function CategoriaBooking({
 }) {
   const [turnoSeleccionado, setTurnoSeleccionado] = useState<TurnoHoras | null>(null);
   const [telefono, setTelefono] = useState("");
+  const [usarPremio, setUsarPremio] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmada, setConfirmada] = useState<ReservaConfirmada | null>(null);
+
+  const voucherDisponible = usuario?.vouchers?.[0] ?? null;
 
   useEffect(() => {
     if (usuario?.telefono) setTelefono((prev) => prev || usuario.telefono || "");
@@ -56,6 +53,7 @@ export default function CategoriaBooking({
           categoriaId: categoria.id,
           turnoHoras: turnoSeleccionado,
           clienteTelefono: telefono,
+          voucherId: usarPremio ? voucherDisponible?.id : undefined,
         }),
       });
       const data = await res.json();
@@ -69,6 +67,7 @@ export default function CategoriaBooking({
         inicio: data.reserva.inicio,
         fin: data.reserva.fin,
         precio: data.reserva.precio,
+        premioGanado: data.premioGanado ?? false,
       });
       onReservado();
     } catch {
@@ -87,12 +86,21 @@ export default function CategoriaBooking({
         </p>
         <p className="mt-2 text-sm text-emerald-700">
           {categoria.nombre} · {formatHora(confirmada.inicio)} a {formatHora(confirmada.fin)} ·{" "}
-          {formatARS(confirmada.precio)}
+          {confirmada.precio === 0 ? "Gratis 🎁" : formatARS(confirmada.precio)}
         </p>
         <p className="mt-2 text-xs text-emerald-600">
           Mostrá este código al llegar a la recepción. Te guardamos la habitación hasta 15
           minutos después del horario de inicio.
         </p>
+        {confirmada.premioGanado && (
+          <p className="mt-3 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">
+            🎉 ¡Con esta reserva sumaste 10 y ganaste una habitación gratis! Mirala en{" "}
+            <a href="/perfil" className="underline">
+              Mis reservas
+            </a>
+            .
+          </p>
+        )}
       </div>
     );
   }
@@ -181,6 +189,17 @@ export default function CategoriaBooking({
             placeholder="Tu teléfono"
             className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
           />
+          {voucherDisponible && (
+            <label className="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+              <input
+                type="checkbox"
+                checked={usarPremio}
+                onChange={(e) => setUsarPremio(e.target.checked)}
+                className="h-3.5 w-3.5 accent-amber-600"
+              />
+              🎁 Usar mi habitación gratis para esta reserva
+            </label>
+          )}
           {error && <p className="text-xs font-medium text-red-600">{error}</p>}
           <button
             type="submit"

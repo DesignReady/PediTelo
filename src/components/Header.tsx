@@ -33,6 +33,12 @@ export default function Header() {
               Mapa
             </Link>
             <Link
+              href="/perfil"
+              className="rounded-lg px-3 py-2 text-neutral-600 transition hover:bg-pink-50 hover:text-pink-700"
+            >
+              Mi cuenta
+            </Link>
+            <Link
               href="/admin"
               className="rounded-lg border border-pink-200 px-3 py-2 text-pink-700 transition hover:bg-pink-50"
             >
