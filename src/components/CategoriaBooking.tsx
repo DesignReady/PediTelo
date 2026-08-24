@@ -27,6 +27,8 @@ export default function CategoriaBooking({
   const [turnoSeleccionado, setTurnoSeleccionado] = useState<TurnoHoras | null>(null);
   const [telefono, setTelefono] = useState("");
   const [usarPremio, setUsarPremio] = useState(false);
+  const [modoAnonimo, setModoAnonimo] = useState(false);
+  const [nombreAnonimo, setNombreAnonimo] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmada, setConfirmada] = useState<ReservaConfirmada | null>(null);
@@ -42,6 +44,7 @@ export default function CategoriaBooking({
   async function reservar(e: React.FormEvent) {
     e.preventDefault();
     if (!turnoSeleccionado || !telefono.trim()) return;
+    if (modoAnonimo && !nombreAnonimo.trim()) return;
     setEnviando(true);
     setError(null);
     try {
@@ -54,6 +57,8 @@ export default function CategoriaBooking({
           turnoHoras: turnoSeleccionado,
           clienteTelefono: telefono,
           voucherId: usarPremio ? voucherDisponible?.id : undefined,
+          anonimo: modoAnonimo,
+          clienteNombre: modoAnonimo ? nombreAnonimo : undefined,
         }),
       });
       const data = await res.json();
@@ -168,13 +173,64 @@ export default function CategoriaBooking({
         })}
       </div>
 
-      {turnoSeleccionado && !sinCupo && usuario === null && (
+      {turnoSeleccionado && !sinCupo && usuario === null && !modoAnonimo && (
         <div className="mt-4 space-y-2 border-t border-pink-50 pt-4">
           <p className="text-xs text-neutral-500">
             Para reservar necesitás iniciar sesión con tu cuenta de Google.
           </p>
           <GoogleLoginButton next={`/hotel/${hotelSlug}`} texto="Continuar con Google" />
+          <button
+            type="button"
+            onClick={() => setModoAnonimo(true)}
+            className="block text-xs text-neutral-400 underline hover:text-neutral-600"
+          >
+            Prefiero reservar de forma anónima
+          </button>
         </div>
+      )}
+
+      {turnoSeleccionado && !sinCupo && usuario === null && modoAnonimo && (
+        <form onSubmit={reservar} className="mt-4 space-y-2 border-t border-pink-50 pt-4">
+          <p className="rounded-lg bg-neutral-50 p-2.5 text-xs text-neutral-600">
+            Reserva anónima: no se vincula a ninguna cuenta de Google. Igual necesitamos tu
+            nombre y teléfono para que el hotel pueda identificarte al llegar.
+          </p>
+          <p className="rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">
+            ⚠️ Reservando así no sumás para tu premio de fidelidad (una habitación gratis cada
+            10 reservas).
+          </p>
+          <input
+            required
+            value={nombreAnonimo}
+            onChange={(e) => setNombreAnonimo(e.target.value)}
+            placeholder="Tu nombre"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
+          />
+          <input
+            required
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            placeholder="Tu teléfono"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
+          />
+          {error && <p className="text-xs font-medium text-red-600">{error}</p>}
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={enviando}
+              className="flex-1 rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
+            >
+              {enviando ? "Confirmando…" : `Reservar de forma anónima · turno ${turnoSeleccionado}h`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setModoAnonimo(false)}
+              className="rounded-lg px-3 py-2.5 text-xs font-medium text-neutral-500 hover:bg-neutral-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
       )}
 
       {turnoSeleccionado && !sinCupo && usuario && (

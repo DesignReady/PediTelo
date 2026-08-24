@@ -10,23 +10,31 @@ interface CrearReservaBody {
   categoriaId?: string;
   turnoHoras?: number;
   clienteTelefono?: string;
+  clienteNombre?: string;
   voucherId?: string;
+  anonimo?: boolean;
 }
 
 export async function POST(req: NextRequest) {
   const sesion = await obtenerSesionClienteDesdeRequest(req);
-  if (!sesion) {
+  const body = (await req.json().catch(() => ({}))) as CrearReservaBody;
+  const { hotelSlug, categoriaId, turnoHoras, clienteTelefono, clienteNombre, voucherId, anonimo } =
+    body;
+
+  // Sin sesión, solo se puede reservar pasando explícitamente por el flujo
+  // anónimo (que igual pide nombre y teléfono a mano).
+  if (!sesion && !anonimo) {
     return NextResponse.json(
-      { error: "Iniciá sesión con Google para reservar" },
+      { error: "Iniciá sesión con Google para reservar, o elegí reservar de forma anónima" },
       { status: 401 }
     );
   }
 
-  const body = (await req.json().catch(() => ({}))) as CrearReservaBody;
-  const { hotelSlug, categoriaId, turnoHoras, clienteTelefono, voucherId } = body;
-
   if (!hotelSlug || !categoriaId || !turnoHoras || !clienteTelefono?.trim()) {
     return NextResponse.json({ error: "Faltan datos para reservar" }, { status: 400 });
+  }
+  if (!sesion && !clienteNombre?.trim()) {
+    return NextResponse.json({ error: "Falta tu nombre" }, { status: 400 });
   }
   if (![1, 3, 5].includes(turnoHoras)) {
     return NextResponse.json({ error: "Turno inválido" }, { status: 400 });
@@ -37,10 +45,10 @@ export async function POST(req: NextRequest) {
       hotelSlug,
       categoriaId,
       turnoHoras,
-      usuarioId: sesion.usuarioId,
-      clienteNombre: sesion.nombre,
+      usuarioId: sesion?.usuarioId,
+      clienteNombre: sesion ? sesion.nombre : clienteNombre!.trim(),
       clienteTelefono: clienteTelefono.trim(),
-      voucherId: voucherId?.trim() || undefined,
+      voucherId: sesion ? voucherId?.trim() || undefined : undefined,
     });
 
     return NextResponse.json(resultado, { status: 201 });

@@ -215,7 +215,9 @@ interface CrearReservaInput {
   hotelSlug: string;
   categoriaId: string;
   turnoHoras: number;
-  usuarioId: string;
+  // Sin cuenta si reservó de forma anónima: no suma para el premio de
+  // fidelidad ni puede canjear uno, pero igual queda registrada la reserva.
+  usuarioId?: string;
   clienteNombre: string;
   clienteTelefono: string;
   voucherId?: string;
@@ -238,7 +240,7 @@ export async function crearReserva(input: CrearReservaInput) {
   });
   if (!turno) throw new Error("Ese turno no está disponible para esta categoría");
 
-  if (input.voucherId) {
+  if (input.voucherId && input.usuarioId) {
     const voucher = await prisma.voucher.findFirst({
       where: { id: input.voucherId, usuarioId: input.usuarioId },
     });
@@ -267,7 +269,7 @@ export async function crearReserva(input: CrearReservaInput) {
     // patrón que la habitación): si dos pestañas intentan canjear el mismo
     // premio a la vez, solo una gana.
     let voucherAplicado = false;
-    if (input.voucherId) {
+    if (input.voucherId && input.usuarioId) {
       const resultadoVoucher = await prisma.voucher.updateMany({
         where: { id: input.voucherId, usado: false },
         data: { usado: true, usadoEn: new Date() },
@@ -299,23 +301,28 @@ export async function crearReserva(input: CrearReservaInput) {
       },
     });
 
-    // Guardamos el teléfono en el perfil para no volver a pedirlo la próxima vez.
-    await prisma.usuario.update({
-      where: { id: input.usuarioId },
-      data: { telefono: input.clienteTelefono },
-    });
-
-    // Cada RESERVAS_POR_PREMIO reservas no canceladas (esta incluida), se
-    // gana un premio nuevo automáticamente.
+    // Lo que sigue (guardar teléfono en el perfil, sumar para el premio de
+    // fidelidad) solo aplica si reservó con cuenta. Reservando de forma
+    // anónima, la reserva queda igual pero no se vincula a nada.
     let premioGanado = false;
-    const totalValidas = await prisma.reserva.count({
-      where: { usuarioId: input.usuarioId, estado: { not: "cancelada" } },
-    });
-    if (totalValidas % RESERVAS_POR_PREMIO === 0) {
-      await prisma.voucher.create({
-        data: { usuarioId: input.usuarioId, codigo: generarCodigoVoucher() },
+    if (input.usuarioId) {
+      // Guardamos el teléfono en el perfil para no volver a pedirlo la próxima vez.
+      await prisma.usuario.update({
+        where: { id: input.usuarioId },
+        data: { telefono: input.clienteTelefono },
       });
-      premioGanado = true;
+
+      // Cada RESERVAS_POR_PREMIO reservas no canceladas (esta incluida), se
+      // gana un premio nuevo automáticamente.
+      const totalValidas = await prisma.reserva.count({
+        where: { usuarioId: input.usuarioId, estado: { not: "cancelada" } },
+      });
+      if (totalValidas % RESERVAS_POR_PREMIO === 0) {
+        await prisma.voucher.create({
+          data: { usuarioId: input.usuarioId, codigo: generarCodigoVoucher() },
+        });
+        premioGanado = true;
+      }
     }
 
     return {
