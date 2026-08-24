@@ -359,23 +359,33 @@ export async function obtenerVouchersDisponibles(usuarioId: string) {
   return vouchers.map((v) => ({ id: v.id, codigo: v.codigo, creada: v.creada.toISOString() }));
 }
 
+const RESERVA_PERFIL_INCLUDE = {
+  hotel: { select: { nombre: true, slug: true } },
+  categoria: { select: { nombre: true } },
+} satisfies Prisma.ReservaInclude;
+
+type ReservaConPerfil = Prisma.ReservaGetPayload<{ include: typeof RESERVA_PERFIL_INCLUDE }>;
+
 export async function obtenerPerfilCliente(usuarioId: string) {
   await liberarReservasVencidas();
 
-  const [reservas, vouchers, totalValidas] = await Promise.all([
-    prisma.reserva.findMany({
-      where: { usuarioId },
-      orderBy: { creada: "desc" },
-      include: { hotel: { select: { nombre: true, slug: true } }, categoria: { select: { nombre: true } } },
-    }),
-    prisma.voucher.findMany({ where: { usuarioId }, orderBy: { creada: "desc" } }),
-    prisma.reserva.count({ where: { usuarioId, estado: { not: "cancelada" } } }),
-  ]);
+  const reservas: ReservaConPerfil[] = await prisma.reserva.findMany({
+    where: { usuarioId },
+    orderBy: { creada: "desc" },
+    include: RESERVA_PERFIL_INCLUDE,
+  });
+  const vouchers = await prisma.voucher.findMany({
+    where: { usuarioId },
+    orderBy: { creada: "desc" },
+  });
+  const totalValidas = await prisma.reserva.count({
+    where: { usuarioId, estado: { not: "cancelada" } },
+  });
 
   const restantes = RESERVAS_POR_PREMIO - (totalValidas % RESERVAS_POR_PREMIO);
 
   return {
-    reservas: reservas.map((r) => ({
+    reservas: reservas.map((r: ReservaConPerfil) => ({
       ...mapReserva(r),
       hotelNombre: r.hotel.nombre,
       hotelSlug: r.hotel.slug,
