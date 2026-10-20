@@ -24,16 +24,43 @@ export default function HotelCard({
 }) {
   const disponible = hotel.abierto && hotel.totalDisponibles > 0;
   const estado = !hotel.abierto ? "Cerrado" : hotel.totalDisponibles === 0 ? "Lleno" : null;
+  const portada = hotel.categorias.find((c) => c.foto)?.foto ?? null;
 
   return (
     <Link
       href={`/hotel/${hotel.slug}`}
       aria-label={estado ? `${hotel.nombre}, ${estado.toLowerCase()}` : undefined}
-      className={`sign sign-link sign-in group block px-5 pb-5 pt-5 active:scale-[0.985] ${
+      className={`sign sign-link sign-in group block overflow-hidden px-5 pb-5 ${portada ? "pt-0" : "pt-5"} active:scale-[0.985] ${
         disponible ? "" : "sign--ash"
       }`}
       style={{ "--i": indice } as React.CSSProperties}
     >
+      {portada && (
+        <div className="relative -mx-5 mb-4 aspect-[16/9] overflow-hidden bg-tint">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={portada}
+            alt=""
+            width={1000}
+            height={750}
+            loading={indice !== undefined && indice < 3 ? "eager" : "lazy"}
+            className={`h-full w-full object-cover transition-transform duration-700 [transition-timing-function:var(--ease-out)] group-hover:scale-105 ${
+              disponible ? "" : "opacity-60 grayscale"
+            }`}
+          />
+          {estado ? (
+            <span className="absolute right-3 top-3 rounded-full bg-alert px-3 py-1 text-sm font-bold text-white">
+              {estado}
+            </span>
+          ) : (
+            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-surface/95 px-2.5 py-1 text-sm font-bold text-pink-text shadow-sm backdrop-blur">
+              <IconStar size={14} />
+              {hotel.rating.toFixed(1)}
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="line-clamp-2 font-display text-[1.45rem] font-bold leading-[1.1] sm:text-[1.6rem]">
@@ -51,16 +78,17 @@ export default function HotelCard({
             )}
           </p>
         </div>
-        {estado ? (
-          <span className="shrink-0 rounded-full bg-alert px-3 py-1 text-sm font-bold text-white">
-            {estado}
-          </span>
-        ) : (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-tint px-2.5 py-1 text-sm font-bold text-pink-text">
-            <IconStar size={14} />
-            {hotel.rating.toFixed(1)}
-          </span>
-        )}
+        {!portada &&
+          (estado ? (
+            <span className="shrink-0 rounded-full bg-alert px-3 py-1 text-sm font-bold text-white">
+              {estado}
+            </span>
+          ) : (
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-tint px-2.5 py-1 text-sm font-bold text-pink-text">
+              <IconStar size={14} />
+              {hotel.rating.toFixed(1)}
+            </span>
+          ))}
       </div>
 
       <div className="mt-4 flex items-end justify-between gap-4 border-t border-line pt-4">

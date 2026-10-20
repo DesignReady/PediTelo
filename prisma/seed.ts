@@ -32,6 +32,7 @@ function habitaciones(piso: number, cantidad: number) {
 }
 
 interface CategoriaSeed {
+  foto?: string;
   nombre: string;
   descripcion: string;
   amenities: string[];
@@ -68,7 +69,7 @@ interface HotelSeed {
   comentarios?: { nombre: string; calificacion: number; comentario: string; horasAtras: number }[];
 }
 
-const hoteles: HotelSeed[] = [
+const hotelesBase: HotelSeed[] = [
   {
     slug: "luna-palermo",
     nombre: "Luna Palermo",
@@ -235,52 +236,271 @@ const hoteles: HotelSeed[] = [
   },
 ];
 
+/** Los precios originales (6.500–38.000) se llevan al rango actual: $40.000–$150.000. */
+function escalar(precio: number): number {
+  return Math.round((40000 + ((precio - 6500) * 110000) / 31500) / 500) * 500;
+}
+for (const h of hotelesBase) {
+  for (const c of h.categorias) c.precios = c.precios.map(escalar) as [number, number, number];
+}
+
+// Categorías nuevas para hoteles que ya existían (precios ya en el rango nuevo).
+const categoriasExtra: Record<string, CategoriaSeed[]> = {
+  "cielo-recoleta": [
+    cat(3, "Premium", "Suite amplia con jacuzzi, cochera reservada y room service.", ["Jacuzzi", "Cochera reservada", "Sonido bluetooth", "Minibar", "Servicios de streaming"], 2, [82000, 112000, 140000]),
+  ],
+  "aurora-almagro": [
+    cat(3, "Suite Jacuzzi", "Hidromasaje doble con luces LED y minibar.", ["Jacuzzi", "Minibar", "Luces LED"], 2, [68000, 97000, 125000]),
+  ],
+  "tulipan-caballito": [
+    cat(3, "Premium", "La habitación más completa de la casa.", ["Jacuzzi", "Cochera reservada", "Minibar", "Sillón"], 1, [78000, 108000, 135000]),
+  ],
+  "beso-quilmes": [
+    cat(3, "Suite Temática", "Ambientación especial con espejos y luces.", ["Espejos", "Luces LED", "Cama redonda"], 2, [62000, 90000, 118000]),
+  ],
+  "sensacion-san-justo": [
+    cat(3, "Suite Jacuzzi", "Hidromasaje con cromoterapia y minibar.", ["Jacuzzi", "Cromoterapia", "Minibar"], 2, [60000, 88000, 115000]),
+  ],
+};
+for (const h of hotelesBase) h.categorias.push(...(categoriasExtra[h.slug] ?? []));
+
+const hotelesNuevos: HotelSeed[] = [
+  {
+    slug: "terciopelo-flores",
+    nombre: "Terciopelo Flores",
+    zona: "Flores, CABA",
+    direccion: "Av. Rivadavia 7200",
+    descripcion:
+      "Alojamiento clásico en Flores con ambientes cálidos, cochera propia y atención discreta las 24 horas.",
+    rating: 4.3,
+    telefono: "11-4000-1009",
+    lat: -34.6285,
+    lng: -58.4636,
+    colorDesde: "#f472b6",
+    colorHasta: "#be185d",
+    amenitiesGenerales: ["Cochera propia", "Ingreso discreto", "WiFi", "Seguridad 24h"],
+    categorias: [
+      cat(1, "Standard", "Habitación luminosa con cama king y TV.", ["Aire acondicionado", "TV cable", "Frigobar"], 7, [44000, 64000, 82000]),
+      cat(2, "Suite Jacuzzi", "Hidromasaje doble y minibar.", ["Jacuzzi", "Minibar", "Luces LED"], 3, [66000, 94000, 121000]),
+      cat(3, "Premium", "Suite grande con sillón, sonido y cochera reservada.", ["Jacuzzi", "Cochera reservada", "Sonido bluetooth", "Sillón"], 2, [88000, 118000, 146000]),
+    ],
+    comentarios: [
+      { nombre: "Lau", calificacion: 4, comentario: "Muy limpio y tranquilo, el jacuzzi estaba perfecto.", horasAtras: 48 },
+    ],
+  },
+  {
+    slug: "noche-dorada-belgrano",
+    nombre: "Noche Dorada Belgrano",
+    zona: "Belgrano, CABA",
+    direccion: "Av. Cabildo 2600",
+    descripcion:
+      "Ambientes de diseño en Belgrano, con room service, ingreso por control remoto y suites premium.",
+    rating: 4.7,
+    telefono: "11-4000-1010",
+    lat: -34.5627,
+    lng: -58.4563,
+    colorDesde: "#fbbf24",
+    colorHasta: "#db2777",
+    amenitiesGenerales: ["Cochera propia", "Room service", "WiFi", "Ingreso por control remoto"],
+    categorias: [
+      cat(1, "Standard", "Habitación de diseño con luz cálida.", ["Aire acondicionado", "TV cable", "Frigobar"], 6, [52000, 76000, 98000]),
+      cat(2, "Suite Temática", "Ambientación especial con luces y espejos.", ["Espejos", "Luces LED", "Cama redonda", "Sonido bluetooth"], 3, [74000, 104000, 130000]),
+      cat(3, "Premium", "La suite más exclusiva, con jacuzzi y vista panorámica.", ["Jacuzzi", "Vista panorámica", "Minibar", "Servicios de streaming"], 2, [96000, 125000, 150000]),
+    ],
+    comentarios: [
+      { nombre: "Fede", calificacion: 5, comentario: "Impecable, el mejor servicio que probamos en la zona.", horasAtras: 20 },
+      { nombre: "Caro", calificacion: 5, comentario: "Muy discreto y la suite premium vale cada peso.", horasAtras: 110 },
+    ],
+  },
+  {
+    slug: "brisa-san-isidro",
+    nombre: "Brisa San Isidro",
+    zona: "San Isidro, GBA Norte",
+    direccion: "Av. Centenario 800",
+    descripcion:
+      "Alojamiento tranquilo en San Isidro con jardín, cochera cerrada y habitaciones modernas.",
+    rating: 4.4,
+    telefono: "11-4000-1011",
+    lat: -34.4708,
+    lng: -58.5276,
+    colorDesde: "#f9a8d4",
+    colorHasta: "#c026d3",
+    amenitiesGenerales: ["Cochera propia", "Jardín", "WiFi", "Seguridad 24h"],
+    categorias: [
+      cat(1, "Standard", "Habitación moderna con salida a jardín.", ["Aire acondicionado", "TV cable"], 5, [48000, 70000, 90000]),
+      cat(2, "Suite Jacuzzi", "Hidromasaje con vista al jardín.", ["Jacuzzi", "Jardín interno", "Minibar"], 3, [72000, 102000, 128000]),
+    ],
+  },
+  {
+    slug: "cascada-lanus",
+    nombre: "Cascada Lanús",
+    zona: "Lanús, GBA Sur",
+    direccion: "Av. Hipólito Yrigoyen 3300",
+    descripcion:
+      "Opción cómoda en Lanús con suites temáticas y buena disponibilidad todos los días.",
+    rating: 4.0,
+    telefono: "11-4000-1012",
+    lat: -34.7066,
+    lng: -58.3917,
+    colorDesde: "#fb7185",
+    colorHasta: "#be123c",
+    amenitiesGenerales: ["Cochera propia", "Ingreso discreto", "WiFi"],
+    categorias: [
+      cat(1, "Standard", "Habitación prolija con cama king.", ["Aire acondicionado", "TV cable"], 6, [41000, 60000, 78000]),
+      cat(2, "Suite Jacuzzi", "Hidromasaje y luces de ambiente.", ["Jacuzzi", "Cromoterapia"], 2, [62000, 89000, 114000]),
+      cat(3, "Suite Temática", "Decoración especial con espejos.", ["Espejos", "Luces LED", "Cama redonda"], 2, [58000, 85000, 110000]),
+    ],
+    comentarios: [
+      { nombre: "Nico", calificacion: 4, comentario: "Buena atención y el precio es razonable para la zona.", horasAtras: 75 },
+    ],
+  },
+];
+
+const hoteles: HotelSeed[] = [...hotelesBase, ...hotelesNuevos];
+
+// Fotos de ejemplo (public/fotos): una portada distinta por hotel.
+const FOTOS: Record<string, string> = {
+  "luna-palermo|Standard": "dormitorio-8",
+  "luna-palermo|Suite Jacuzzi": "jacuzzi-3",
+  "luna-palermo|Premium": "dormitorio-3",
+  "cielo-recoleta|Standard": "dormitorio-2",
+  "cielo-recoleta|Suite Jacuzzi": "jacuzzi-2",
+  "cielo-recoleta|Premium": "dormitorio-4",
+  "aurora-almagro|Standard": "dormitorio-11",
+  "aurora-almagro|Suite Temática": "jacuzzi-4",
+  "aurora-almagro|Suite Jacuzzi": "jacuzzi-1",
+  "tulipan-caballito|Standard": "dormitorio-12",
+  "tulipan-caballito|Suite Jacuzzi": "jacuzzi-5",
+  "tulipan-caballito|Premium": "dormitorio-1",
+  "punto-rosa-avellaneda|Standard": "dormitorio-6",
+  "punto-rosa-avellaneda|Premium": "dormitorio-5",
+  "beso-quilmes|Standard": "dormitorio-7",
+  "beso-quilmes|Suite Jacuzzi": "jacuzzi-3",
+  "beso-quilmes|Suite Temática": "jacuzzi-4",
+  "eclipse-vicente-lopez|Standard": "dormitorio-5",
+  "eclipse-vicente-lopez|Suite Jacuzzi": "jacuzzi-1",
+  "eclipse-vicente-lopez|Premium": "dormitorio-12",
+  "sensacion-san-justo|Standard": "dormitorio-9",
+  "sensacion-san-justo|Suite Temática": "jacuzzi-5",
+  "sensacion-san-justo|Suite Jacuzzi": "jacuzzi-2",
+  "terciopelo-flores|Standard": "dormitorio-1",
+  "terciopelo-flores|Suite Jacuzzi": "jacuzzi-4",
+  "terciopelo-flores|Premium": "dormitorio-2",
+  "noche-dorada-belgrano|Standard": "dormitorio-10",
+  "noche-dorada-belgrano|Suite Temática": "jacuzzi-5",
+  "noche-dorada-belgrano|Premium": "dormitorio-6",
+  "brisa-san-isidro|Standard": "dormitorio-4",
+  "brisa-san-isidro|Suite Jacuzzi": "jacuzzi-2",
+  "cascada-lanus|Standard": "dormitorio-3",
+  "cascada-lanus|Suite Jacuzzi": "jacuzzi-1",
+  "cascada-lanus|Suite Temática": "jacuzzi-3",
+};
+for (const h of hoteles) {
+  for (const c of h.categorias) {
+    const f = FOTOS[`${h.slug}|${c.nombre}`];
+    if (f) c.foto = `/fotos/${f}.jpg`;
+  }
+}
+
+function datosHotel(h: HotelSeed) {
+  return {
+    slug: h.slug,
+    nombre: h.nombre,
+    zona: h.zona,
+    direccion: h.direccion,
+    descripcion: h.descripcion,
+    rating: h.rating,
+    telefono: h.telefono,
+    lat: h.lat,
+    lng: h.lng,
+    colorDesde: h.colorDesde,
+    colorHasta: h.colorHasta,
+    amenitiesGenerales: h.amenitiesGenerales,
+    reglas: reglasDefault(),
+    abierto: true,
+  };
+}
+
+function datosCategoria(c: CategoriaSeed, orden: number) {
+  return {
+    nombre: c.nombre,
+    descripcion: c.descripcion,
+    amenities: c.amenities,
+    foto: c.foto ?? null,
+    orden,
+    habitaciones: { create: habitaciones(c.piso, c.cantidad) },
+    turnos: { create: turnos(...c.precios) },
+  };
+}
+
+async function crearHotel(h: HotelSeed) {
+  await prisma.hotel.create({
+    data: {
+      ...datosHotel(h),
+      categorias: { create: h.categorias.map((c, i) => datosCategoria(c, i)) },
+      comentarios: h.comentarios
+        ? {
+            create: h.comentarios.map((cm) => ({
+              nombre: cm.nombre,
+              calificacion: cm.calificacion,
+              comentario: cm.comentario,
+              creada: new Date(Date.now() - cm.horasAtras * 60 * 60 * 1000),
+            })),
+          }
+        : undefined,
+    },
+  });
+}
+
+/**
+ * Pone al día una base ya sembrada (npm run db:sync): actualiza precios y fotos,
+ * agrega las categorías y los hoteles que falten. No toca habitaciones,
+ * reservas ni comentarios de lo que ya existe.
+ */
+async function sincronizar() {
+  for (const h of hoteles) {
+    const existente = await prisma.hotel.findUnique({
+      where: { slug: h.slug },
+      include: { categorias: { include: { turnos: true } } },
+    });
+    if (!existente) {
+      await crearHotel(h);
+      console.log(`Creado: ${h.nombre}`);
+      continue;
+    }
+    let orden = existente.categorias.length;
+    for (const c of h.categorias) {
+      const actual = existente.categorias.find((x) => x.nombre === c.nombre);
+      if (!actual) {
+        await prisma.categoria.create({ data: { hotelId: existente.id, ...datosCategoria(c, orden++) } });
+        continue;
+      }
+      await prisma.categoria.update({ where: { id: actual.id }, data: { foto: c.foto ?? actual.foto } });
+      for (const t of turnos(...c.precios)) {
+        await prisma.turno.updateMany({
+          where: { categoriaId: actual.id, horas: t.horas },
+          data: { precio: t.precio },
+        });
+      }
+    }
+    console.log(`Actualizado: ${h.nombre}`);
+  }
+}
+
 async function main() {
+  if (process.argv.includes("--sync")) {
+    await sincronizar();
+    return;
+  }
+
   const existentes = await prisma.hotel.count();
   if (existentes > 0) {
-    console.log(`Ya hay ${existentes} hoteles en la base, no se vuelve a sembrar.`);
+    console.log(`Ya hay ${existentes} hoteles en la base, no se vuelve a sembrar (usá --sync para actualizar).`);
     return;
   }
 
   for (const h of hoteles) {
-    await prisma.hotel.create({
-      data: {
-        slug: h.slug,
-        nombre: h.nombre,
-        zona: h.zona,
-        direccion: h.direccion,
-        descripcion: h.descripcion,
-        rating: h.rating,
-        telefono: h.telefono,
-        lat: h.lat,
-        lng: h.lng,
-        colorDesde: h.colorDesde,
-        colorHasta: h.colorHasta,
-        amenitiesGenerales: h.amenitiesGenerales,
-        reglas: reglasDefault(),
-        abierto: true,
-        categorias: {
-          create: h.categorias.map((c, i) => ({
-            nombre: c.nombre,
-            descripcion: c.descripcion,
-            amenities: c.amenities,
-            orden: i,
-            habitaciones: { create: habitaciones(c.piso, c.cantidad) },
-            turnos: { create: turnos(...c.precios) },
-          })),
-        },
-        comentarios: h.comentarios
-          ? {
-              create: h.comentarios.map((cm) => ({
-                nombre: cm.nombre,
-                calificacion: cm.calificacion,
-                comentario: cm.comentario,
-                creada: new Date(Date.now() - cm.horasAtras * 60 * 60 * 1000),
-              })),
-            }
-          : undefined,
-      },
-    });
+    await crearHotel(h);
     console.log(`Sembrado: ${h.nombre}`);
   }
 }

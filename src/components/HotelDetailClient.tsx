@@ -85,6 +85,7 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
   const km = coords ? distanciaKm(coords, { lat: hotel.lat, lng: hotel.lng }) : null;
   const encendido = hotel.abierto && hotel.totalDisponibles > 0;
   const motivo = !hotel.abierto ? "Cerrado" : hotel.totalDisponibles === 0 ? "Lleno" : null;
+  const portada = hotel.categorias.find((c) => c.foto)?.foto ?? null;
 
   return (
     <div className="mx-auto max-w-3xl px-3 pb-10 pt-3 sm:px-6 sm:pt-5">
@@ -95,11 +96,23 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
 
       {/* ───── Cartel del hotel ───── */}
       <header
-        className={`sign mt-1 px-6 pb-7 pt-7 [--r:2rem] sm:px-10 sm:pb-9 sm:pt-9 ${
-          encendido ? "" : "sign--ash"
-        }`}
+        className={`sign mt-1 overflow-hidden px-6 pb-7 [--r:2rem] sm:px-10 sm:pb-9 ${
+          portada ? "pt-0" : "pt-7 sm:pt-9"
+        } ${encendido ? "" : "sign--ash"}`}
         data-glint={encendido ? "1" : undefined}
       >
+        {portada && (
+          <div className="-mx-6 mb-6 aspect-[16/9] overflow-hidden bg-tint sm:-mx-10 sm:aspect-[21/9]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={portada}
+              alt={`Habitación de ${hotel.nombre}`}
+              width={1000}
+              height={750}
+              className={`h-full w-full object-cover ${encendido ? "" : "opacity-60 grayscale"}`}
+            />
+          </div>
+        )}
         <div>
           <div className="flex items-start justify-between gap-3">
             <h1 className="min-w-0 font-display text-[clamp(2rem,8.5vw,3.6rem)] font-extrabold leading-[1.03]">
