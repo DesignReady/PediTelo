@@ -2,6 +2,7 @@
 
 import { Habitacion } from "@/lib/types";
 import ToggleSwitch from "./ToggleSwitch";
+import { IconClose, IconPlus } from "../icons";
 
 let contadorTemporal = 0;
 
@@ -35,29 +36,37 @@ export default function HabitacionesEditor({
   return (
     <div>
       {habitaciones.length === 0 && (
-        <p className="text-xs text-neutral-300">Todavía no cargaste ninguna habitación.</p>
+        <p className="text-sm text-ink-3">Todavía no cargaste ninguna habitación.</p>
       )}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {habitaciones.map((h) => (
           <div
             key={h.id}
-            className="relative flex flex-col items-center gap-1.5 rounded-xl border border-neutral-200 py-3"
+            className={`relative flex flex-col items-center gap-0.5 rounded-2xl border-2 pb-1.5 pt-3 transition-colors duration-300 ${
+              h.disponible ? "border-sheet bg-tint" : "border-line-strong bg-surface-2"
+            }`}
           >
             <button
               type="button"
               onClick={() => quitar(h.id)}
               aria-label={`Quitar habitación ${h.numero}`}
-              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-[11px] leading-none text-neutral-400 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+              className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-line-strong bg-surface text-ink-3 transition hover:border-alert hover:text-alert"
             >
-              ×
+              <IconClose size={13} />
             </button>
 
+            <label className="sr-only" htmlFor={`hab-${h.id}`}>
+              Número de habitación
+            </label>
             <input
+              id={`hab-${h.id}`}
               value={h.numero}
               onChange={(e) => actualizar(h.id, { numero: e.target.value })}
-              aria-label="Número de habitación"
-              className="w-16 rounded-lg border-none bg-transparent text-center text-lg font-bold text-neutral-800 focus:outline-none focus:ring-1 focus:ring-pink-300"
+              className="w-20 rounded-lg border-none bg-transparent text-center font-display text-[2rem] font-extrabold leading-none text-ink focus:outline-none focus:ring-2 focus:ring-sheet"
             />
+            <p className="text-xs font-bold uppercase tracking-wide text-ink-3">
+              {h.disponible ? "Libre" : "Ocupada"}
+            </p>
             <ToggleSwitch
               checked={h.disponible}
               onChange={(v) => actualizar(h.id, { disponible: v })}
@@ -70,9 +79,10 @@ export default function HabitacionesEditor({
       <button
         type="button"
         onClick={agregar}
-        className="mt-3 w-full rounded-lg border border-dashed border-pink-200 py-2 text-xs font-semibold text-pink-600 hover:bg-pink-50"
+        className="mt-3 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-line-strong text-sm font-bold text-pink-text transition hover:border-sheet hover:bg-tint"
       >
-        + Agregar habitación
+        <IconPlus size={16} />
+        Agregar habitación
       </button>
     </div>
   );

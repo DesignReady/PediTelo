@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconPlus } from "../icons";
 
 export default function NuevaCategoriaForm({
   hotelId,
@@ -47,9 +48,9 @@ export default function NuevaCategoriaForm({
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="w-full rounded-2xl border-2 border-dashed border-pink-200 bg-pink-50/40 py-4 text-sm font-semibold text-pink-700 transition hover:bg-pink-50"
+        className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line-strong font-display text-xl font-extrabold text-pink-text transition hover:border-sheet hover:bg-tint"
       >
-        + Agregar categoría de habitación
+        <IconPlus size={18} /> Agregar categoría
       </button>
     );
   }
@@ -57,12 +58,12 @@ export default function NuevaCategoriaForm({
   return (
     <form
       onSubmit={crear}
-      className="rounded-2xl border border-pink-100 bg-white p-5 shadow-sm"
+      className="panel p-5"
     >
-      <h3 className="font-semibold text-neutral-800">Nueva categoría</h3>
+      <h3 className="font-display text-[1.7rem] font-extrabold leading-none">Nueva categoría</h3>
       <div className="mt-3 space-y-3">
         <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+          <label className="mb-1 block text-sm font-bold text-ink-2">
             Nombre
           </label>
           <input
@@ -70,11 +71,11 @@ export default function NuevaCategoriaForm({
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej: Suite Deluxe"
             autoFocus
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
+            className="field"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+          <label className="mb-1 block text-sm font-bold text-ink-2">
             Descripción
           </label>
           <textarea
@@ -82,38 +83,38 @@ export default function NuevaCategoriaForm({
             onChange={(e) => setDescripcion(e.target.value)}
             rows={2}
             placeholder="Contales a los huéspedes qué tiene esta habitación"
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
+            className="field"
           />
         </div>
-        <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+        <label className="flex items-center gap-3 text-sm font-bold text-ink-2">
           Habitaciones totales
           <input
             type="number"
             min={0}
             value={total}
             onChange={(e) => setTotal(Math.max(0, Number(e.target.value)))}
-            className="w-20 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:border-pink-400 focus:outline-none"
+            className="field w-20"
           />
         </label>
-        <p className="text-xs text-neutral-400">
+        <p className="text-sm text-ink-3">
           Se crea sin precios cargados y sin ofrecer ningún turno — configurás
           eso después de guardarla.
         </p>
-        {error && <p className="text-xs font-medium text-red-600">{error}</p>}
+        {error && <p className="text-sm font-semibold text-red-600" role="alert">{error}</p>}
       </div>
 
       <div className="mt-4 flex items-center gap-3">
         <button
           type="submit"
           disabled={creando || !nombre.trim()}
-          className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
+          className="btn btn-primary !min-h-11 !text-base"
         >
           {creando ? "Creando…" : "Crear categoría"}
         </button>
         <button
           type="button"
           onClick={() => setAbierto(false)}
-          className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-500 hover:bg-neutral-50"
+          className="btn btn-quiet"
         >
           Cancelar
         </button>

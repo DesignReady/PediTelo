@@ -1,80 +1,110 @@
 import Link from "next/link";
 import { HotelConDisponibilidad } from "@/lib/types";
-import { formatARS } from "@/lib/format";
 import { formatDistancia } from "@/lib/geo";
+import Digits from "./Digits";
+import { IconArrow, IconStar } from "./icons";
 
+function miles(n: number): string {
+  return n.toLocaleString("es-AR");
+}
+
+/**
+ * Cartel de salida: nombre y zona a la izquierda, libres y precio en cifras
+ * grandes. Si el hotel está cerrado o lleno la lámina se apaga (ceniza, sin
+ * destello) y queda solo la etiqueta roja con el motivo.
+ */
 export default function HotelCard({
   hotel,
   distanciaKm,
+  indice = 0,
 }: {
   hotel: HotelConDisponibilidad;
   distanciaKm?: number;
+  indice?: number;
 }) {
   const disponible = hotel.abierto && hotel.totalDisponibles > 0;
   const estado = !hotel.abierto ? "Cerrado" : hotel.totalDisponibles === 0 ? "Lleno" : null;
 
   return (
-    <div className="relative">
-      {estado && (
-        <span className="absolute right-2 top-2 z-10 rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white shadow">
-          {estado}
-        </span>
-      )}
-      <Link
-        href={`/hotel/${hotel.slug}`}
-        className={`flex gap-3 rounded-2xl border border-pink-100 bg-white p-3 shadow-sm transition active:scale-[0.98] active:bg-pink-50/60 ${
-          estado ? "grayscale" : ""
-        }`}
-      >
-        <div
-          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl"
-          style={{
-            background: `linear-gradient(135deg, ${hotel.colorDesde}, ${hotel.colorHasta})`,
-          }}
-        >
-          <span className="absolute bottom-1 left-1 flex items-center gap-0.5 rounded-full bg-black/30 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-            ★ {hotel.rating.toFixed(1)}
-          </span>
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate text-sm font-semibold text-neutral-800">{hotel.nombre}</h3>
+    <Link
+      href={`/hotel/${hotel.slug}`}
+      aria-label={estado ? `${hotel.nombre}, ${estado.toLowerCase()}` : undefined}
+      className={`sign sign-link sign-in group block px-5 pb-5 pt-5 active:scale-[0.985] ${
+        disponible ? "" : "sign--ash"
+      }`}
+      style={{ "--i": indice } as React.CSSProperties}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="line-clamp-2 font-display text-[1.45rem] font-bold leading-[1.1] sm:text-[1.6rem]">
+            {hotel.nombre}
+          </h3>
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[0.95rem] font-medium text-ink-2">
+            <span>{hotel.zona}</span>
             {distanciaKm !== undefined && (
-              <span className="shrink-0 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-500">
-                {formatDistancia(distanciaKm)}
-              </span>
-            )}
-          </div>
-          <p className="truncate text-xs text-neutral-400">{hotel.zona}</p>
-
-          <div className="mt-1.5 flex items-center gap-1.5">
-            {disponible ? (
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
-                {hotel.totalDisponibles} libres ahora
-              </span>
-            ) : (
-              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-400">
-                {estado === "Cerrado" ? "Cerrado ahora" : "Sin disponibilidad"}
-              </span>
-            )}
-          </div>
-
-          <div className="mt-auto flex items-center justify-between pt-1.5">
-            <span className="text-[11px] text-neutral-400">Turnos 1h · 3h · 5h</span>
-            {hotel.precioDesde !== null ? (
-              <span className="text-right leading-tight">
-                <span className="block text-[10px] font-medium text-neutral-400">Desde</span>
-                <span className="text-sm font-bold text-rose-700">
-                  {formatARS(hotel.precioDesde)}
+              <>
+                <span aria-hidden="true" className="opacity-60">
+                  ·
                 </span>
+                <span className="font-bold text-ink">a {formatDistancia(distanciaKm)}</span>
+              </>
+            )}
+          </p>
+        </div>
+        {estado ? (
+          <span className="shrink-0 rounded-full bg-alert px-3 py-1 text-sm font-bold text-white">
+            {estado}
+          </span>
+        ) : (
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-tint px-2.5 py-1 text-sm font-bold text-pink-text">
+            <IconStar size={14} />
+            {hotel.rating.toFixed(1)}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 flex items-end justify-between gap-4 border-t border-line pt-4">
+        <div className="flex items-end gap-6">
+          <div>
+            <p className="text-[0.75rem] font-semibold text-ink-3">
+              {disponible ? "Libres ahora" : "Libres"}
+            </p>
+            <Digits
+              value={disponible ? hotel.totalDisponibles : 0}
+              className={`text-[2.3rem] ${disponible ? "text-pink-text" : ""}`}
+              label={
+                disponible
+                  ? `${hotel.totalDisponibles} habitaciones libres`
+                  : `Sin habitaciones libres, ${estado?.toLowerCase()}`
+              }
+            />
+          </div>
+          <div>
+            <p className="text-[0.75rem] font-semibold text-ink-3">Desde</p>
+            {hotel.precioDesde !== null ? (
+              <span className="flex items-baseline gap-0.5">
+                <span className="font-display text-lg font-bold leading-none">$</span>
+                <Digits
+                  value={miles(hotel.precioDesde)}
+                  className="text-[2.3rem]"
+                  label={`desde ${miles(hotel.precioDesde)} pesos`}
+                />
               </span>
             ) : (
-              <span className="text-sm text-neutral-300">—</span>
+              <span className="font-display text-[2.3rem] leading-none text-ink-3">—</span>
             )}
           </div>
         </div>
-      </Link>
-    </div>
+
+        <span
+          aria-hidden="true"
+          className={`mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform duration-300 [transition-timing-function:var(--ease-out)] group-hover:translate-x-1 group-active:translate-x-1.5 ${
+            disponible ? "bg-sheet text-white" : "bg-line text-ink-3"
+          }`}
+        >
+          <IconArrow size={22} />
+        </span>
+      </div>
+    </Link>
   );
 }

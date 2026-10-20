@@ -22,14 +22,15 @@ export default function PriceRangeSlider({
 
   return (
     <div className="min-w-[220px]">
-      <div className="flex items-center justify-between text-xs font-medium text-neutral-500">
+      <div className="flex items-baseline justify-between font-display text-[1.6rem] font-extrabold leading-none tabular-nums text-ink">
         <span>{formatARS(valueMin)}</span>
+        <span className="mx-2 h-0.5 flex-1 translate-y-[-0.25em] rounded-full bg-line-strong" aria-hidden="true" />
         <span>{formatARS(valueMax)}</span>
       </div>
-      <div className="price-range mt-1">
-        <div className="pointer-events-none absolute top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-neutral-200" />
+      <div className="price-range mt-2">
+        <div className="pointer-events-none absolute top-1/2 h-2 w-full -translate-y-1/2 rounded-full bg-neutral-200" />
         <div
-          className="pointer-events-none absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-pink-500"
+          className="pointer-events-none absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-sheet"
           style={{ left: `${pctMin}%`, width: `${Math.max(0, pctMax - pctMin)}%` }}
         />
         <input

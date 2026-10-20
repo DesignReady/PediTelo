@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { IconAlert, IconKey } from "../icons";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -33,33 +34,58 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="mx-auto max-w-sm px-4 py-16">
-      <h1 className="text-xl font-extrabold text-neutral-800">Panel de tu hotel</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Ingresá con el email y la contraseña que te dio PediTelo.
-      </p>
-      <form onSubmit={enviar} className="mt-5 space-y-3">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          autoFocus
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Contraseña"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
-        />
-        {error && <p className="text-xs font-medium text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={enviando}
-          className="w-full rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
-        >
+    <div className="mx-auto max-w-md px-4 py-10 sm:py-16">
+      <div className="sign px-7 pb-7 pt-7 [--r:1.75rem]" data-glint="1">
+        <div className="relative z-[3]">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sheet text-white">
+            <IconKey size={24} />
+          </span>
+          <h1 className="mt-4 font-display text-[2.6rem] font-extrabold leading-[0.92]">
+            Panel de tu hotel
+          </h1>
+          <p className="mt-2 text-ink-2">
+            Ingresá con el email y la contraseña que te dio PediTelo.
+          </p>
+        </div>
+      </div>
+
+      <form onSubmit={enviar} className="panel mt-4 space-y-4 p-5">
+        <div>
+          <label htmlFor="login-email" className="mb-1 block text-sm font-bold text-ink-2">
+            Email
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
+            autoFocus
+            required
+            className="field"
+          />
+        </div>
+        <div>
+          <label htmlFor="login-password" className="mb-1 block text-sm font-bold text-ink-2">
+            Contraseña
+          </label>
+          <input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            required
+            className="field"
+          />
+        </div>
+        {error && (
+          <p role="alert" className="flex gap-2 text-sm font-semibold text-red-600">
+            <IconAlert size={18} className="mt-0.5 shrink-0" />
+            {error}
+          </p>
+        )}
+        <button type="submit" disabled={enviando} className="btn btn-primary w-full !min-h-14 !text-xl">
           {enviando ? "Ingresando…" : "Ingresar"}
         </button>
       </form>

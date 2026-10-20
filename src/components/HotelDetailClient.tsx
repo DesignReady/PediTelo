@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Comentario, HotelConDisponibilidad, UsuarioSesion } from "@/lib/types";
 import CategoriaBooking from "./CategoriaBooking";
 import Comentarios from "./Comentarios";
+import { IconAlert, IconBack, IconCheck, IconLocate, IconRoute, IconStar, IconWaze } from "./icons";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { distanciaKm, formatDistancia, urlGoogleMaps, urlWaze } from "@/lib/geo";
 
@@ -46,16 +47,12 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
     return () => clearInterval(interval);
   }, [cargar]);
 
-  useEffect(() => {
-    solicitar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   if (notFound) {
     return (
-      <div className="px-4 py-16 text-center">
-        <p className="text-neutral-500">No encontramos este alojamiento.</p>
-        <Link href="/" className="mt-3 inline-block text-pink-600 underline">
+      <div className="mx-auto max-w-md px-4 py-20 text-center">
+        <p className="font-display text-3xl font-extrabold">Esta salida no existe</p>
+        <p className="mt-2 text-ink-2">No encontramos este alojamiento.</p>
+        <Link href="/" className="btn btn-primary mt-6">
           Volver a la búsqueda
         </Link>
       </div>
@@ -64,12 +61,9 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
 
   if (error && !hotel) {
     return (
-      <div className="px-4 py-16 text-center">
-        <p className="text-red-600">{error}</p>
-        <button
-          onClick={() => cargar()}
-          className="mt-3 rounded-lg border border-red-300 px-3 py-1.5 text-sm font-semibold text-red-700"
-        >
+      <div className="mx-auto max-w-md px-4 py-20 text-center" role="alert">
+        <p className="font-semibold">{error}</p>
+        <button onClick={() => cargar()} className="btn btn-primary mt-5">
           Reintentar
         </button>
       </div>
@@ -77,143 +71,167 @@ export default function HotelDetailClient({ slug }: { slug: string }) {
   }
 
   if (!hotel) {
-    return <div className="px-4 py-16 text-center text-neutral-400">Cargando…</div>;
+    return (
+      <div className="mx-auto max-w-3xl px-3 pt-4 sm:px-6" aria-hidden="true">
+        <div className="sign sign--ghost h-60 [--r:2rem]" />
+        <div className="mt-4 space-y-3">
+          <div className="sign sign--ghost h-52" />
+          <div className="sign sign--ghost h-52" />
+        </div>
+      </div>
+    );
   }
 
   const km = coords ? distanciaKm(coords, { lat: hotel.lat, lng: hotel.lng }) : null;
+  const encendido = hotel.abierto && hotel.totalDisponibles > 0;
+  const motivo = !hotel.abierto ? "Cerrado" : hotel.totalDisponibles === 0 ? "Lleno" : null;
 
   return (
-    <div>
-      <div
-        className="h-36 w-full sm:h-52"
-        style={{ background: `linear-gradient(135deg, ${hotel.colorDesde}, ${hotel.colorHasta})` }}
-      />
+    <div className="mx-auto max-w-3xl px-3 pb-10 pt-3 sm:px-6 sm:pt-5">
+      <Link href="/" className="btn btn-quiet -ml-2 gap-1.5">
+        <IconBack size={18} />
+        Volver a la búsqueda
+      </Link>
 
-      <div className="mx-auto max-w-2xl px-4 py-5 sm:px-6 sm:py-8">
-        <Link href="/" className="text-sm text-pink-600 sm:hover:underline">
-          ← Volver a la búsqueda
-        </Link>
-
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <h1 className="text-xl font-extrabold text-neutral-800 sm:text-2xl">
+      {/* ───── Cartel del hotel ───── */}
+      <header
+        className={`sign mt-1 px-6 pb-7 pt-7 [--r:2rem] sm:px-10 sm:pb-9 sm:pt-9 ${
+          encendido ? "" : "sign--ash"
+        }`}
+        data-glint={encendido ? "1" : undefined}
+      >
+        <div>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="min-w-0 font-display text-[clamp(2rem,8.5vw,3.6rem)] font-extrabold leading-[1.03]">
               {hotel.nombre}
             </h1>
-            <p className="text-sm text-neutral-500">
-              {hotel.zona} · {hotel.direccion}
-            </p>
+            {motivo ? (
+              <span className="shrink-0 rounded-full bg-alert px-3 py-1 text-sm font-bold text-white">
+                {motivo}
+              </span>
+            ) : (
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-tint px-3 py-1 text-base font-bold text-pink-text">
+                <IconStar size={16} />
+                {hotel.rating.toFixed(1)}
+              </span>
+            )}
           </div>
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-600">
-            ★ {hotel.rating.toFixed(1)}
-          </span>
-        </div>
-
-        {usuario && (
-          <p className="mt-1 text-xs text-neutral-400">
-            Conectado como {usuario.nombre} ·{" "}
-            <Link href="/perfil" className="underline hover:text-neutral-600">
-              Mis reservas
-            </Link>{" "}
-            ·{" "}
-            <button
-              type="button"
-              onClick={async () => {
-                await fetch("/api/auth/logout-cliente", { method: "POST" });
-                setUsuario(null);
-              }}
-              className="underline hover:text-neutral-600"
-            >
-              Cerrar sesión
-            </button>
+          <p className="mt-2 text-[1.05rem] font-medium text-ink-2">
+            {hotel.zona} · {hotel.direccion}
           </p>
-        )}
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <a
-            href={urlGoogleMaps(hotel)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-full bg-pink-600 px-3 py-1.5 text-xs font-semibold text-white transition active:bg-pink-700 sm:hover:bg-pink-700"
-          >
-            🧭 Google Maps
-          </a>
-          <a
-            href={urlWaze(hotel)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-pink-700 transition active:bg-pink-50 sm:hover:bg-pink-50"
-          >
-            🚗 Waze
-          </a>
-          {km !== null ? (
-            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500">
-              A {formatDistancia(km)} de tu ubicación
-            </span>
-          ) : (
-            estado !== "buscando" && (
-              <button
-                onClick={solicitar}
-                className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs font-semibold text-neutral-500"
-              >
-                📍 Ver distancia
-              </button>
-            )
-          )}
-        </div>
-
-        {!hotel.abierto && (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-            Este alojamiento no está operando en este momento.
-          </div>
-        )}
-
-        {hotel.descripcion && (
-          <p className="mt-4 text-sm leading-relaxed text-neutral-600">{hotel.descripcion}</p>
-        )}
-
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {hotel.amenitiesGenerales.map((a) => (
-            <span
-              key={a}
-              className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600"
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">
+            <a
+              href={urlGoogleMaps(hotel)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-white !min-h-12 !px-4 !text-base"
             >
-              {a}
-            </span>
-          ))}
-        </div>
-
-        {hotel.reglas.length > 0 && (
-          <div className="mt-5 rounded-xl border border-pink-100 bg-pink-50/40 p-4">
-            <h2 className="text-sm font-bold text-neutral-800">Reglas del alojamiento</h2>
-            <ul className="mt-2 space-y-1.5">
-              {hotel.reglas.map((r, i) => (
-                <li key={i} className="flex gap-2 text-sm text-neutral-600">
-                  <span className="text-pink-400">•</span>
-                  {r}
-                </li>
-              ))}
-            </ul>
+              <IconRoute size={18} />
+              Cómo llegar
+            </a>
+            <a
+              href={urlWaze(hotel)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-ghost !min-h-12 !px-4 !text-base"
+            >
+              <IconWaze size={18} />
+              Waze
+            </a>
+            {km !== null ? (
+              <span className="font-display text-xl font-bold leading-none">
+                A {formatDistancia(km)}
+              </span>
+            ) : (
+              estado !== "buscando" && (
+                <button onClick={solicitar} className="btn btn-quiet">
+                  <IconLocate size={18} />
+                  Ver distancia
+                </button>
+              )
+            )}
           </div>
-        )}
+        </div>
+      </header>
 
-        <h2 className="mt-7 mb-3 text-base font-bold text-neutral-800 sm:text-lg">
-          Categorías de habitación
-        </h2>
-        <div className="space-y-4">
-          {hotel.categorias.map((cat) => (
-            <CategoriaBooking
-              key={cat.id}
-              hotelSlug={hotel.slug}
-              categoria={cat}
-              usuario={usuario}
-              onReservado={cargar}
-            />
+      {usuario && (
+        <p className="mt-3 flex flex-wrap items-center gap-x-2 px-1 text-sm text-ink-3">
+          <IconCheck size={14} className="text-sheet" />
+          Conectado como <span className="font-bold text-ink-2">{usuario.nombre}</span>
+          <span aria-hidden="true">·</span>
+          <Link href="/perfil" className="font-semibold underline-offset-2 hover:underline">
+            Mis reservas
+          </Link>
+          <span aria-hidden="true">·</span>
+          <button
+            type="button"
+            onClick={async () => {
+              await fetch("/api/auth/logout-cliente", { method: "POST" });
+              setUsuario(null);
+            }}
+            className="font-semibold underline-offset-2 hover:underline"
+          >
+            Cerrar sesión
+          </button>
+        </p>
+      )}
+
+      {!hotel.abierto && (
+        <div role="status" className="mt-4 flex gap-2.5 rounded-xl bg-amber-50 p-3.5 text-[0.95rem] font-semibold text-amber-700">
+          <IconAlert size={20} className="mt-0.5 shrink-0" />
+          Este alojamiento no está operando en este momento. Podés ver sus datos, pero todavía no se puede reservar.
+        </div>
+      )}
+
+      {hotel.descripcion && (
+        <p className="mt-5 max-w-[65ch] text-[1.02rem] leading-relaxed text-ink-2">{hotel.descripcion}</p>
+      )}
+
+      {hotel.amenitiesGenerales.length > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {hotel.amenitiesGenerales.map((a) => (
+            <li key={a} className="chip">
+              {a}
+            </li>
           ))}
-        </div>
+        </ul>
+      )}
 
-        <div className="mt-8 border-t border-pink-100 pt-5">
-          <Comentarios hotelSlug={hotel.slug} comentarios={comentarios} onNuevoComentario={cargar} />
-        </div>
+      {hotel.reglas.length > 0 && (
+        <section className="panel mt-5 p-5" aria-labelledby="titulo-reglas">
+          <h2 id="titulo-reglas" className="font-display text-[1.5rem] font-extrabold leading-none">
+            Reglamento
+          </h2>
+          <ul className="mt-3 space-y-2">
+            {hotel.reglas.map((r, i) => (
+              <li key={i} className="flex gap-2.5 text-[0.95rem] text-ink-2">
+                <IconCheck size={18} className="mt-0.5 shrink-0 text-sheet" />
+                {r}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <h2 className="mb-3 mt-9 font-display text-[2.1rem] font-extrabold leading-none">
+        Elegí tu habitación
+      </h2>
+      <div className="space-y-4">
+        {hotel.categorias.map((cat) => (
+          <CategoriaBooking
+            key={cat.id}
+            hotelSlug={hotel.slug}
+            categoria={cat}
+            usuario={usuario}
+            hotelAbierto={hotel.abierto}
+            onReservado={cargar}
+          />
+        ))}
+      </div>
+
+      <div className="mt-10">
+        <Comentarios hotelSlug={hotel.slug} comentarios={comentarios} onNuevoComentario={cargar} />
       </div>
     </div>
   );

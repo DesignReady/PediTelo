@@ -91,7 +91,13 @@ export async function GET(req: NextRequest) {
       max: todosLosPrecios.length ? Math.max(...todosLosPrecios) : 0,
     };
 
-    return NextResponse.json({ hotels, zonas, rangoPrecios });
+    // Habitaciones libres ahora en todos los hoteles abiertos (sin importar los
+    // filtros): es la cifra en vivo del cartel principal de la home.
+    const libresAhora = todosLosHoteles
+      .filter((h) => h.abierto)
+      .reduce((suma, h) => suma + h.totalDisponibles, 0);
+
+    return NextResponse.json({ hotels, zonas, rangoPrecios, libresAhora });
   } catch (e) {
     console.error("GET /api/hotels", e);
     return NextResponse.json(

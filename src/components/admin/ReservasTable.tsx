@@ -31,53 +31,53 @@ export default function ReservasTable({
 
   if (reservas.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-pink-200 bg-pink-50/50 p-6 text-center text-sm text-neutral-500">
+      <div className="rounded-2xl border-2 border-dashed border-line-strong px-5 py-8 text-center text-ink-2">
         No hay reservas activas en este momento.
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-pink-100 bg-white shadow-sm">
-      <table className="w-full text-left text-sm">
-        <thead className="bg-pink-50 text-xs uppercase tracking-wide text-pink-700">
-          <tr>
-            <th className="px-4 py-3">Código</th>
-            <th className="px-4 py-3">Cliente</th>
-            <th className="px-4 py-3">Categoría</th>
-            <th className="px-4 py-3">Turno</th>
-            <th className="px-4 py-3">Horario</th>
-            <th className="px-4 py-3">Precio</th>
-            <th className="px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-pink-50">
-          {reservas.map((r) => (
-            <tr key={r.id}>
-              <td className="px-4 py-3 font-semibold text-neutral-700">{r.codigo}</td>
-              <td className="px-4 py-3 text-neutral-600">
-                {r.clienteNombre}
-                <div className="text-xs text-neutral-400">{r.clienteTelefono}</div>
-              </td>
-              <td className="px-4 py-3 text-neutral-600">{categoriaNombre(r.categoriaId)}</td>
-              <td className="px-4 py-3 text-neutral-600">{r.turnoHoras}h</td>
-              <td className="px-4 py-3 text-neutral-600">
-                {formatHora(r.inicio)} – {formatHora(r.fin)}
-              </td>
-              <td className="px-4 py-3 text-neutral-600">{formatARS(r.precio)}</td>
-              <td className="px-4 py-3 text-right">
-                <button
-                  onClick={() => finalizar(r.id)}
-                  disabled={procesando === r.id}
-                  className="rounded-lg border border-pink-200 px-3 py-1.5 text-xs font-semibold text-pink-700 transition hover:bg-pink-50 disabled:opacity-60"
-                >
-                  {procesando === r.id ? "…" : "Finalizar ahora"}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <ul className="grid gap-3 md:grid-cols-2">
+      {reservas.map((r, i) => (
+        <li
+          key={r.id}
+          className="panel rise-in flex flex-col gap-3 p-4"
+          style={{ ["--d" as string]: `${Math.min(i, 6) * 45}ms` }}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-ink-3">Código</p>
+              <p className="font-display text-[1.9rem] font-extrabold leading-none tracking-[0.04em] text-pink-text">
+                {r.codigo}
+              </p>
+            </div>
+            <p className="font-display text-2xl font-bold tabular-nums">
+              {r.precio === 0 ? "Gratis" : formatARS(r.precio)}
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold">{r.clienteNombre}</p>
+            <p className="text-sm tabular-nums text-ink-3">{r.clienteTelefono}</p>
+          </div>
+
+          <p className="text-sm text-ink-2">
+            {categoriaNombre(r.categoriaId)} · turno {r.turnoHoras}h ·{" "}
+            <span className="tabular-nums">
+              {formatHora(r.inicio)} – {formatHora(r.fin)}
+            </span>
+          </p>
+
+          <button
+            onClick={() => finalizar(r.id)}
+            disabled={procesando === r.id}
+            className="btn btn-ghost !min-h-11 self-start !text-base"
+          >
+            {procesando === r.id ? "Finalizando…" : "Finalizar ahora"}
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { CategoriaConDisponibilidad, Habitacion, TurnoHoras } from "@/lib/types";
 import HabitacionesEditor from "./HabitacionesEditor";
 import ServiciosDropdown from "../ServiciosDropdown";
+import { IconCheck } from "../icons";
 
 export default function CategoriaAdminCard({
   hotelId,
@@ -134,15 +135,15 @@ export default function CategoriaAdminCard({
   }
 
   return (
-    <div className="rounded-2xl border border-pink-100 bg-white p-5 shadow-sm">
+    <div className="panel p-5">
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="shrink-0">
-          <div className="h-28 w-28 overflow-hidden rounded-xl bg-pink-50">
+          <div className="h-28 w-28 overflow-hidden rounded-2xl bg-surface-2 ring-1 ring-line">
             {foto ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={foto} alt={nombre} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-pink-300">
+              <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-ink-3">
                 Sin foto
               </div>
             )}
@@ -151,7 +152,7 @@ export default function CategoriaAdminCard({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={subiendoFoto}
-            className="mt-2 w-28 rounded-lg border border-pink-200 px-2 py-1.5 text-xs font-semibold text-pink-700 transition hover:bg-pink-50 disabled:opacity-60"
+            className="btn btn-ghost mt-2 w-28 !min-h-10 !px-3 !text-base"
           >
             {subiendoFoto ? "Subiendo…" : foto ? "Cambiar foto" : "Subir foto"}
           </button>
@@ -162,11 +163,11 @@ export default function CategoriaAdminCard({
             onChange={subirFoto}
             className="hidden"
           />
-          {errorFoto && <p className="mt-1 w-28 text-[11px] text-red-600">{errorFoto}</p>}
+          {errorFoto && <p className="mt-1 w-28 text-xs font-semibold text-red-600">{errorFoto}</p>}
         </div>
 
-        <div className="flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-2.5">
             <input
               value={nombre}
               onChange={(e) => {
@@ -174,13 +175,14 @@ export default function CategoriaAdminCard({
                 setOk(false);
               }}
               placeholder="Nombre de la categoría"
-              className="rounded-lg border border-neutral-200 px-2 py-1 text-sm font-semibold text-neutral-800 focus:border-pink-400 focus:outline-none"
+              aria-label="Nombre de la categoría"
+              className="field !min-h-12 w-full font-display !text-[1.5rem] font-extrabold"
             />
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-md bg-tint px-2.5 py-1 font-display text-base font-extrabold tracking-wide text-pink-text">
                 {libres} de {habitaciones.length} libres
               </span>
-              <span className="rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-700">
+              <span className="rounded-md bg-surface-2 px-2.5 py-1 font-display text-base font-extrabold tracking-wide text-ink-2">
                 Reservas activas: {categoria.ocupadas}
               </span>
             </div>
@@ -191,7 +193,7 @@ export default function CategoriaAdminCard({
       <div className="mt-4">
         <label
           htmlFor={`descripcion-${categoria.id}`}
-          className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400"
+          className="mb-1 block text-sm font-bold text-ink-2"
         >
           Descripción de la habitación
         </label>
@@ -204,12 +206,12 @@ export default function CategoriaAdminCard({
           }}
           rows={2}
           placeholder="Contales a los huéspedes qué tiene esta habitación"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-700 focus:border-pink-400 focus:outline-none"
+          className="field w-full"
         />
       </div>
 
       <div className="mt-4">
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+        <span className="mb-1 block text-sm font-bold text-ink-2">
           Servicios de esta habitación
         </span>
         <ServiciosDropdown
@@ -222,7 +224,7 @@ export default function CategoriaAdminCard({
       </div>
 
       <div className="mt-4">
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+        <span className="mb-1 block text-sm font-bold text-ink-2">
           Habitaciones de esta categoría
         </span>
         <HabitacionesEditor
@@ -236,27 +238,27 @@ export default function CategoriaAdminCard({
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {turnos.map((t) => (
-          <div key={t.horas} className="rounded-xl border border-neutral-200 p-3">
+          <div key={t.horas} className="rounded-2xl border-2 border-line bg-surface-2 p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-neutral-700">Turno {t.horas}h</span>
-              <label className="flex items-center gap-1.5 text-xs text-neutral-500">
+              <span className="font-display text-xl font-extrabold leading-none">Turno {t.horas}h</span>
+              <label className="flex min-h-9 items-center gap-1.5 text-sm font-semibold text-ink-2">
                 <input
                   type="checkbox"
                   checked={t.activo}
                   onChange={(e) => actualizarTurno(t.horas, { activo: e.target.checked })}
-                  className="h-3.5 w-3.5 accent-pink-600"
+                  className="h-5 w-5"
                 />
                 Ofrecer
               </label>
             </div>
-            <div className="mt-2 flex items-center gap-1 text-sm">
+            <div className="mt-2 flex items-center gap-1.5 font-display text-xl font-bold">
               $
               <input
                 type="number"
                 min={0}
                 value={t.precio}
                 onChange={(e) => actualizarTurno(t.horas, { precio: Number(e.target.value) })}
-                className="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-sm focus:border-pink-400 focus:outline-none"
+                className="field w-full"
               />
             </div>
           </div>
@@ -268,26 +270,26 @@ export default function CategoriaAdminCard({
           <button
             onClick={guardar}
             disabled={guardando}
-            className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
+            className="btn btn-primary !min-h-11 !text-base"
           >
             {guardando ? "Guardando…" : "Guardar cambios"}
           </button>
-          {ok && <span className="text-xs font-medium text-emerald-600">Guardado ✓</span>}
+          {ok && <span className="flex items-center gap-1 text-sm font-bold text-emerald-700"><IconCheck size={16} /> Guardado</span>}
         </div>
 
         {confirmandoBorrado ? (
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-neutral-500">¿Eliminar esta categoría?</span>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold text-ink-2">¿Eliminar esta categoría?</span>
             <button
               onClick={eliminar}
               disabled={eliminando}
-              className="rounded-lg bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              className="btn !min-h-10 !bg-alert !px-4 !text-base text-white"
             >
               {eliminando ? "Eliminando…" : "Sí, eliminar"}
             </button>
             <button
               onClick={() => setConfirmandoBorrado(false)}
-              className="rounded-lg px-3 py-1.5 font-medium text-neutral-500 hover:bg-neutral-50"
+              className="btn btn-quiet !min-h-10"
             >
               Cancelar
             </button>
@@ -295,17 +297,17 @@ export default function CategoriaAdminCard({
         ) : (
           <button
             onClick={() => setConfirmandoBorrado(true)}
-            className="text-xs font-semibold text-red-500 hover:text-red-700"
+            className="btn btn-quiet !min-h-10 !text-alert hover:!bg-red-50"
           >
             Eliminar categoría
           </button>
         )}
       </div>
       {errorGuardado && (
-        <p className="mt-2 text-xs font-medium text-red-600">{errorGuardado}</p>
+        <p className="mt-2 text-sm font-semibold text-red-600" role="alert">{errorGuardado}</p>
       )}
       {errorBorrado && (
-        <p className="mt-2 text-xs font-medium text-red-600">{errorBorrado}</p>
+        <p className="mt-2 text-sm font-semibold text-red-600" role="alert">{errorBorrado}</p>
       )}
     </div>
   );

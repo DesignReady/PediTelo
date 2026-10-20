@@ -16,15 +16,19 @@ export default function ToggleSwitch({
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-        checked ? "bg-pink-500" : "bg-neutral-300"
-      }`}
+      className="group relative inline-flex h-11 w-[4.25rem] shrink-0 items-center justify-center rounded-full"
     >
       <span
-        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-          checked ? "translate-x-5" : "translate-x-0.5"
+        className={`relative inline-block h-8 w-14 rounded-full transition-colors duration-300 ${
+          checked ? "bg-sheet" : "bg-neutral-300"
         }`}
-      />
+      >
+        <span
+          className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow-[0_2px_5px_rgba(63,19,41,0.4)] transition-transform duration-[320ms] [transition-timing-function:var(--ease-out)] group-active:scale-x-110 ${
+            checked ? "translate-x-6" : "translate-x-0"
+          }`}
+        />
+      </span>
     </button>
   );
 }

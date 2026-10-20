@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { HotelConDisponibilidad } from "@/lib/types";
 import EditableTagList from "./EditableTagList";
 import ServiciosDropdown from "../ServiciosDropdown";
+import { IconCheck } from "../icons";
 
 export default function HotelInfoCard({
   hotel,
@@ -46,16 +47,16 @@ export default function HotelInfoCard({
   }
 
   return (
-    <div className="rounded-2xl border border-pink-100 bg-white p-5 shadow-sm">
-      <h3 className="font-semibold text-neutral-800">Información del negocio</h3>
-      <p className="mt-0.5 text-xs text-neutral-400">
+    <div className="panel p-5">
+      <h3 className="font-display text-[1.7rem] font-extrabold leading-none">Información del negocio</h3>
+      <p className="mt-1 text-sm text-ink-3">
         Esto es lo primero que ven los huéspedes al entrar a tu hotel en la web.
       </p>
 
       <div className="mt-4">
         <label
           htmlFor={`hotel-descripcion-${hotel.id}`}
-          className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400"
+          className="mb-1 block text-sm font-bold text-ink-2"
         >
           Descripción del alojamiento
         </label>
@@ -68,12 +69,12 @@ export default function HotelInfoCard({
           }}
           rows={3}
           placeholder="Contales a los huéspedes qué hace especial a tu alojamiento"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-700 focus:border-pink-400 focus:outline-none"
+          className="field"
         />
       </div>
 
       <div className="mt-4">
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+        <span className="mb-1 block text-sm font-bold text-ink-2">
           Servicios generales del hotel
         </span>
         <ServiciosDropdown
@@ -86,7 +87,7 @@ export default function HotelInfoCard({
       </div>
 
       <div className="mt-4">
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
+        <span className="mb-1 block text-sm font-bold text-ink-2">
           Reglas del alojamiento
         </span>
         <EditableTagList
@@ -105,11 +106,11 @@ export default function HotelInfoCard({
         <button
           onClick={guardar}
           disabled={guardando}
-          className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
+          className="btn btn-primary !min-h-11 !text-base"
         >
           {guardando ? "Guardando…" : "Guardar cambios"}
         </button>
-        {ok && <span className="text-xs font-medium text-emerald-600">Guardado ✓</span>}
+        {ok && <span className="flex items-center gap-1 text-sm font-bold text-emerald-700"><IconCheck size={16} /> Guardado</span>}
       </div>
     </div>
   );

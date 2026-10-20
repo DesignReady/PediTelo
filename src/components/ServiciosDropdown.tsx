@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { AMENIDADES_COMUNES, AmenidadOpcion } from "@/lib/amenidades";
+import { IconCheck, IconChevron, IconClose } from "./icons";
 
 export default function ServiciosDropdown({
   items,
@@ -19,13 +20,21 @@ export default function ServiciosDropdown({
   const [abierto, setAbierto] = useState(false);
   const [nuevo, setNuevo] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const panelId = useId();
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setAbierto(false);
     }
+    function onEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") setAbierto(false);
+    }
     document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEscape);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEscape);
+    };
   }, []);
 
   function toggle(nombre: string) {
@@ -48,24 +57,30 @@ export default function ServiciosDropdown({
         type="button"
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}
-        className="flex w-full items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-700 focus:border-pink-400 focus:outline-none"
+        aria-controls={panelId}
+        className="field flex items-center justify-between text-left"
       >
-        <span>
+        <span className={items.length === 0 ? "text-ink-3" : "font-semibold"}>
           {items.length === 0
             ? placeholderVacio
             : `${items.length} servicio${items.length === 1 ? "" : "s"} seleccionado${
                 items.length === 1 ? "" : "s"
               }`}
         </span>
-        <span className={`text-neutral-400 transition-transform ${abierto ? "rotate-180" : ""}`}>
-          ▾
-        </span>
+        <IconChevron
+          size={18}
+          className={`text-ink-3 transition-transform duration-300 ${abierto ? "rotate-180" : ""}`}
+        />
       </button>
 
       {abierto && (
-        <div className="absolute z-20 mt-1.5 w-full min-w-[280px] rounded-xl border border-pink-100 bg-white p-3 shadow-lg">
-          <div className="flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
-            {opciones.map(({ nombre, icon }) => {
+        <div
+          id={panelId}
+          className="panel absolute z-30 mt-2 w-full min-w-[280px] origin-top p-3.5 shadow-[0_24px_44px_-18px_rgba(63,19,41,0.55)]"
+          style={{ animation: "rise-in 200ms var(--ease-out) both" }}
+        >
+          <div className="flex max-h-56 flex-wrap gap-2 overflow-y-auto p-0.5">
+            {opciones.map(({ nombre }) => {
               const activo = items.includes(nombre);
               return (
                 <button
@@ -73,13 +88,9 @@ export default function ServiciosDropdown({
                   type="button"
                   onClick={() => toggle(nombre)}
                   aria-pressed={activo}
-                  className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
-                    activo
-                      ? "border-pink-500 bg-pink-50 text-pink-700"
-                      : "border-neutral-200 text-neutral-600"
-                  }`}
+                  className="chip !min-h-10 !px-3.5"
                 >
-                  <span aria-hidden="true">{icon}</span>
+                  {activo && <IconCheck size={14} />}
                   {nombre}
                 </button>
               );
@@ -89,15 +100,18 @@ export default function ServiciosDropdown({
                 key={nombre}
                 type="button"
                 onClick={() => toggle(nombre)}
-                className="flex items-center gap-1 rounded-full border border-pink-500 bg-pink-50 px-2.5 py-1 text-xs font-medium text-pink-700"
+                aria-label={`Quitar ${nombre}`}
+                className="chip !min-h-10 !px-3.5"
+                data-on="true"
               >
-                {nombre} ×
+                {nombre}
+                <IconClose size={14} />
               </button>
             ))}
           </div>
 
           {permitirPersonalizado && (
-            <div className="mt-2 flex gap-2 border-t border-neutral-100 pt-2">
+            <div className="mt-3 flex gap-2 border-t border-line pt-3">
               <input
                 value={nuevo}
                 onChange={(e) => setNuevo(e.target.value)}
@@ -108,12 +122,13 @@ export default function ServiciosDropdown({
                   }
                 }}
                 placeholder="Otro servicio…"
-                className="flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs focus:border-pink-400 focus:outline-none"
+                aria-label="Otro servicio"
+                className="field !min-h-10 flex-1 !py-1.5 text-sm"
               />
               <button
                 type="button"
                 onClick={agregarPersonalizado}
-                className="shrink-0 rounded-lg bg-pink-100 px-3 py-1.5 text-xs font-semibold text-pink-700 hover:bg-pink-200"
+                className="btn btn-ghost !min-h-10 !px-4 !text-base"
               >
                 Agregar
               </button>
@@ -123,7 +138,7 @@ export default function ServiciosDropdown({
           <button
             type="button"
             onClick={() => setAbierto(false)}
-            className="mt-2 w-full rounded-lg bg-pink-600 py-1.5 text-xs font-semibold text-white hover:bg-pink-700"
+            className="btn btn-primary mt-3 w-full !min-h-11"
           >
             Listo
           </button>

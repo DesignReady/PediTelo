@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { IconAlert, IconCheck, IconKey } from "../icons";
 
 interface HotelConCuenta {
   id: string;
@@ -90,30 +91,54 @@ export default function SuperadminClient() {
   }
 
   if (autenticado === null) {
-    return <div className="px-4 py-16 text-center text-neutral-400">Cargando…</div>;
+    return (
+      <div className="mx-auto max-w-md px-4 py-16" aria-hidden="true">
+        <div className="sign sign--ghost h-44" />
+      </div>
+    );
   }
 
   if (!autenticado) {
     return (
-      <div className="mx-auto max-w-sm px-4 py-16">
-        <h1 className="text-xl font-extrabold text-neutral-800">Acceso restringido</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Ingresá la clave maestra para administrar las cuentas de los hoteles.
-        </p>
-        <form onSubmit={iniciarSesion} className="mt-5 space-y-3">
-          <input
-            type="password"
-            value={passwordMaestra}
-            onChange={(e) => setPasswordMaestra(e.target.value)}
-            placeholder="Clave maestra"
-            autoFocus
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-pink-400 focus:outline-none"
-          />
-          {errorLogin && <p className="text-xs font-medium text-red-600">{errorLogin}</p>}
+      <div className="mx-auto max-w-md px-4 py-10 sm:py-16">
+        <div className="sign px-7 pb-7 pt-7 [--r:1.75rem]" data-glint="1">
+          <div className="relative z-[3]">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sheet text-white">
+              <IconKey size={24} />
+            </span>
+            <h1 className="mt-4 font-display text-[2.6rem] font-extrabold leading-[0.92]">
+              Acceso restringido
+            </h1>
+            <p className="mt-2 text-ink-2">
+              Ingresá la clave maestra para administrar las cuentas de los hoteles.
+            </p>
+          </div>
+        </div>
+        <form onSubmit={iniciarSesion} className="panel mt-4 space-y-4 p-5">
+          <div>
+            <label htmlFor="clave-maestra" className="mb-1 block text-sm font-bold text-ink-2">
+              Clave maestra
+            </label>
+            <input
+              id="clave-maestra"
+              type="password"
+              value={passwordMaestra}
+              onChange={(e) => setPasswordMaestra(e.target.value)}
+              autoFocus
+              required
+              className="field"
+            />
+          </div>
+          {errorLogin && (
+            <p role="alert" className="flex gap-2 text-sm font-semibold text-red-600">
+              <IconAlert size={18} className="mt-0.5 shrink-0" />
+              {errorLogin}
+            </p>
+          )}
           <button
             type="submit"
             disabled={ingresando}
-            className="w-full rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
+            className="btn btn-primary w-full !min-h-14 !text-xl"
           >
             {ingresando ? "Ingresando…" : "Ingresar"}
           </button>
@@ -124,70 +149,84 @@ export default function SuperadminClient() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-8">
-      <h1 className="text-xl font-extrabold text-neutral-800 sm:text-2xl">
+      <h1 className="font-display text-[2.6rem] font-extrabold leading-[0.92] sm:text-[3.2rem]">
         Cuentas de hoteles
       </h1>
-      <p className="mt-1 text-sm text-neutral-500">
+      <p className="mt-2 max-w-[60ch] text-ink-2">
         Creá o restablecé el acceso de cada hotel a su propio panel de administración.
       </p>
 
       {credenciales && (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-          <p className="text-sm font-semibold text-emerald-800">
-            Cuenta lista — copiá estos datos ahora, no se vuelven a mostrar:
-          </p>
-          <p className="mt-2 text-sm text-emerald-900">
-            Usuario: <span className="font-mono font-semibold">{credenciales.email}</span>
-          </p>
-          <p className="text-sm text-emerald-900">
-            Contraseña: <span className="font-mono font-semibold">{credenciales.password}</span>
-          </p>
-          <p className="mt-2 text-xs text-emerald-700">
-            Mandaselo al hotel por el medio que prefieras junto con el link{" "}
-            <span className="font-mono">/admin/login</span>.
-          </p>
+        <div role="status" className="ticket rise-in mt-5" style={{ ["--notch" as string]: "46%" }}>
+          <div className="px-6 pb-4 pt-5">
+            <p className="flex items-center gap-2 font-display text-2xl font-extrabold leading-none">
+              <IconCheck size={22} className="text-sheet" />
+              Cuenta lista
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-ink-2">
+              Copiá estos datos ahora, no se vuelven a mostrar.
+            </p>
+          </div>
+          <div className="perforation mx-5" />
+          <div className="space-y-1.5 px-6 pb-5 pt-4 text-[0.95rem]">
+            <p>
+              Usuario: <span className="font-mono font-bold">{credenciales.email}</span>
+            </p>
+            <p>
+              Contraseña: <span className="font-mono font-bold">{credenciales.password}</span>
+            </p>
+            <p className="pt-1 text-sm text-ink-3">
+              Mandaselo al hotel por el medio que prefieras junto con el link{" "}
+              <span className="font-mono">/admin/login</span>.
+            </p>
+          </div>
         </div>
       )}
 
       {error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div role="alert" className="mt-4 flex gap-2 rounded-xl bg-red-50 p-3.5 text-sm font-semibold text-red-700">
+          <IconAlert size={18} className="mt-0.5 shrink-0" />
           {error}
         </div>
       )}
 
-      <div className="mt-5 space-y-3">
-        {hotels.map((h) => (
-          <div key={h.id} className="rounded-xl border border-pink-100 bg-white p-4">
-            <div className="flex items-center justify-between">
+      <div className="mt-6 space-y-3">
+        {hotels.map((h, i) => (
+          <div key={h.id} className="panel rise-in p-4" style={{ ["--d" as string]: `${Math.min(i, 8) * 45}ms` }}>
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-neutral-800">{h.nombre}</p>
-                <p className="text-xs text-neutral-400">{h.zona}</p>
+                <p className="font-display text-[1.5rem] font-extrabold leading-none">{h.nombre}</p>
+                <p className="mt-0.5 text-sm text-ink-3">{h.zona}</p>
               </div>
               {h.email ? (
-                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">
+                <span className="rounded-md bg-emerald-50 px-2.5 py-1 font-display text-sm font-extrabold tracking-wide text-emerald-700">
                   Cuenta activa
                 </span>
               ) : (
-                <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-400">
+                <span className="rounded-md bg-surface-2 px-2.5 py-1 font-display text-sm font-extrabold tracking-wide text-ink-3">
                   Sin cuenta
                 </span>
               )}
             </div>
 
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <label htmlFor={`email-${h.id}`} className="sr-only">
+                Email de {h.nombre}
+              </label>
               <input
+                id={`email-${h.id}`}
                 type="email"
                 value={emailPorHotel[h.id] ?? h.email ?? ""}
                 onChange={(e) =>
                   setEmailPorHotel((prev) => ({ ...prev, [h.id]: e.target.value }))
                 }
                 placeholder="email@hotel.com"
-                className="flex-1 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:border-pink-400 focus:outline-none"
+                className="field flex-1"
               />
               <button
                 onClick={() => crearCuenta(h.id)}
                 disabled={creandoPara === h.id}
-                className="shrink-0 rounded-lg bg-pink-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
+                className="btn btn-primary shrink-0 !min-h-12 !px-5 !text-base"
               >
                 {creandoPara === h.id
                   ? "Generando…"

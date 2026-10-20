@@ -2,78 +2,53 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { IconHome, IconKey, IconMap, IconUser } from "./icons";
 
-function IconInicio({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={active ? 2.4 : 2}>
-      <path d="M4 11.5 12 4l8 7.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconMapa({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={active ? 2.4 : 2}>
-      <path
-        d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="9.5" r="2.3" />
-    </svg>
-  );
-}
-
-function IconPerfil({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={active ? 2.4 : 2}>
-      <circle cx="12" cy="8" r="3.3" />
-      <path d="M5 20c0-3.6 3.1-6.2 7-6.2s7 2.6 7 6.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconAdmin({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={active ? 2.4 : 2}>
-      <path
-        d="M10.5 3.5h3l.4 2a6.9 6.9 0 0 1 1.9 1.1l2-.7 1.5 2.6-1.5 1.4a7 7 0 0 1 0 2.2l1.5 1.4-1.5 2.6-2-.7a6.9 6.9 0 0 1-1.9 1.1l-.4 2h-3l-.4-2a6.9 6.9 0 0 1-1.9-1.1l-2 .7-1.5-2.6 1.5-1.4a7 7 0 0 1 0-2.2L4.7 8.5l1.5-2.6 2 .7A6.9 6.9 0 0 1 10.1 5.5l.4-2Z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="12" r="2.5" />
-    </svg>
-  );
-}
-
-const tabs = [
-  { href: "/", label: "Inicio", Icon: IconInicio },
-  { href: "/mapa", label: "Mapa", Icon: IconMapa },
-  { href: "/perfil", label: "Perfil", Icon: IconPerfil },
-  { href: "/admin", label: "Admin", Icon: IconAdmin },
+const TABS = [
+  { href: "/", label: "Inicio", Icon: IconHome },
+  { href: "/mapa", label: "Mapa", Icon: IconMap },
+  { href: "/perfil", label: "Cuenta", Icon: IconUser },
+  { href: "/admin", label: "Hotel", Icon: IconKey },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
+  const activo = TABS.findIndex(({ href }) =>
+    href === "/" ? pathname === "/" || pathname.startsWith("/hotel") : pathname.startsWith(href)
+  );
+
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-pink-100 bg-white/95 backdrop-blur sm:hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      aria-label="Principal"
+      className="fixed inset-x-3 z-40 sm:hidden"
+      style={{ bottom: "calc(env(safe-area-inset-bottom) + 0.625rem)" }}
     >
-      <div className="flex items-stretch">
-        {tabs.map(({ href, label, Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+      <div className="relative grid grid-cols-4 rounded-[1.4rem] border border-line bg-surface/95 p-1.5 shadow-[0_14px_34px_-14px_rgba(63,19,41,0.55)] backdrop-blur-md">
+        {/* el cartel activo se desliza de una pestaña a la otra */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-1.5 left-1.5 w-[calc((100%-0.75rem)/4)] transition-[transform,opacity] duration-[420ms] [transition-timing-function:var(--ease-out)]"
+          style={{
+            transform: `translateX(${Math.max(activo, 0) * 100}%)`,
+            opacity: activo === -1 ? 0 : 1,
+          }}
+        >
+          <span className="block h-full rounded-2xl bg-tint" />
+        </span>
+
+        {TABS.map(({ href, label, Icon }, i) => {
+          const esActivo = i === activo;
           return (
             <Link
               key={href}
               href={href}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition ${
-                active ? "text-pink-600" : "text-neutral-400"
+              aria-current={esActivo ? "page" : undefined}
+              className={`relative z-10 flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-[0.75rem] font-semibold transition-colors duration-300 active:scale-95 ${
+                esActivo ? "text-pink-text" : "text-ink-2"
               }`}
             >
-              <Icon active={active} />
+              <Icon size={22} />
               {label}
             </Link>
           );

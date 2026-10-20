@@ -10,9 +10,10 @@ export default function GoogleLoginButton({
   return (
     <a
       href={`/api/auth/google?next=${encodeURIComponent(next)}`}
-      className="flex items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-50"
+      className="btn flex w-full !min-h-14 gap-3 !bg-white !text-[#3c2a33] !normal-case !tracking-normal shadow-[0_8px_18px_-10px_rgba(63,19,41,0.55),0_0_0_2px_var(--line-strong)_inset] hover:!bg-[#fff7fa]"
+      style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "1.05rem" }}
     >
-      <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
         <path
           fill="#4285F4"
           d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"

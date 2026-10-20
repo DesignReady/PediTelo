@@ -7,6 +7,8 @@ import { AmenidadOpcion } from "@/lib/amenidades";
 import HotelCard from "./HotelCard";
 import PriceRangeSlider from "./PriceRangeSlider";
 import ServiciosDropdown from "./ServiciosDropdown";
+import Digits from "./Digits";
+import { IconCheck, IconChevron, IconClose, IconLocate, IconWifiOff } from "./icons";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { distanciaKm } from "@/lib/geo";
 
@@ -30,10 +32,12 @@ export default function HomeClient() {
 
   const [hotels, setHotels] = useState<HotelConDisponibilidad[]>([]);
   const [zonas, setZonas] = useState<string[]>([]);
+  const [libresAhora, setLibresAhora] = useState<number | null>(null);
   const [soloDisponibles, setSoloDisponibles] = useState(false);
   const [zona, setZona] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
 
   const [rango, setRango] = useState<{ min: number; max: number } | null>(null);
   const [precioSel, setPrecioSel] = useState<{ min: number; max: number } | null>(null);
@@ -65,6 +69,7 @@ export default function HomeClient() {
       const data = await res.json();
       setHotels(data.hotels ?? []);
       setZonas(data.zonas ?? []);
+      if (typeof data.libresAhora === "number") setLibresAhora(data.libresAhora);
       if (data.rangoPrecios) {
         setRango(data.rangoPrecios);
         setPrecioSel((prev) => prev ?? data.rangoPrecios);
@@ -92,162 +97,251 @@ export default function HomeClient() {
       .sort((a, b) => a.km - b.km);
   }, [hotels, coords]);
 
+  const precioModificado =
+    !!rango && !!precioSel && (precioSel.min !== rango.min || precioSel.max !== rango.max);
+  const filtrosActivos = (zona ? 1 : 0) + (precioModificado ? 1 : 0) + (servicios.length > 0 ? 1 : 0);
+
+  function limpiarTodo() {
+    setZona("");
+    setServicios([]);
+    setSoloDisponibles(false);
+    if (rango) {
+      setPrecioSel(rango);
+      setPrecioAplicado(rango);
+    }
+    if (q) router.push("/");
+  }
+
   return (
     <div>
-      <section className="bg-gradient-to-br from-pink-600 via-rose-600 to-pink-700 text-white">
-        <div className="mx-auto max-w-3xl px-4 pb-6 pt-6 sm:px-6 sm:pb-10 sm:pt-14">
-          <h1 className="text-2xl font-extrabold leading-tight sm:text-4xl">
-            Dejá de dar vueltas de madrugada.
-          </h1>
-          <p className="mt-1.5 text-sm text-pink-50/90 sm:mt-3 sm:text-base">
-            Disponibilidad real ahora mismo. Reservá tu turno en segundos.
-          </p>
+      {/* ───── Cartel principal ───── */}
+      <section className="px-3 pt-3 sm:px-6 sm:pt-5">
+        <div
+          className="sign mx-auto max-w-6xl px-6 pb-8 pt-8 [--r:2rem] sm:px-12 sm:pb-12 sm:pt-12"
+          data-glint="1"
+        >
+          <div className="lg:flex lg:items-end lg:justify-between lg:gap-14">
+            <div className="lg:max-w-[34rem]">
+              <h1 className="max-w-[16ch] font-display text-[clamp(2.2rem,8.6vw,4.4rem)] font-extrabold leading-[1.02]">
+                Dejá de dar vueltas de <span className="text-pink-text">madrugada</span>
+              </h1>
 
-          <button
-            onClick={solicitar}
-            disabled={estado === "buscando"}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white/15 py-2.5 text-sm font-semibold backdrop-blur transition active:bg-white/25 disabled:opacity-70 sm:w-auto sm:px-6"
-          >
-            {estado === "listo"
-              ? "📍 Ordenado por cercanía"
-              : estado === "buscando"
-              ? "Buscando tu ubicación…"
-              : estado === "denegado"
-              ? "Ubicación no disponible — activala en el navegador"
-              : "📍 Buscar hoteles cerca tuyo"}
-          </button>
+              <div className="mt-5 flex flex-wrap items-center gap-3 sm:mt-7">
+                <button
+                  type="button"
+                  onClick={solicitar}
+                  disabled={estado === "buscando"}
+                  className="btn btn-primary"
+                >
+                  {estado === "listo" ? <IconCheck size={20} /> : <IconLocate size={20} />}
+                  {estado === "listo"
+                    ? "Ordenado por cercanía"
+                    : estado === "buscando"
+                    ? "Buscando tu ubicación…"
+                    : "Los más cerca mío"}
+                </button>
+                {estado === "denegado" && (
+                  <p className="max-w-[22ch] text-sm font-semibold leading-tight text-ink-2">
+                    Activá la ubicación en el navegador para ordenar por cercanía.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-end gap-4 lg:mt-0">
+              <Digits
+                value={libresAhora ?? "–"}
+                ignite
+                className="text-[4rem] text-pink-text sm:text-[5rem] lg:text-[6.5rem]"
+                label={
+                  libresAhora === null
+                    ? "Calculando habitaciones libres"
+                    : `${libresAhora} habitaciones libres ahora`
+                }
+              />
+              <div className="pb-1.5 sm:pb-3 lg:pb-5">
+                <p className="font-display text-[1.3rem] font-bold leading-tight sm:text-[1.6rem]">
+                  habitaciones
+                  <br />
+                  libres ahora
+                </p>
+                <p className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-ink-2">
+                  <span className="live-dot" aria-hidden="true" />
+                  En vivo, se actualiza solo
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6 sm:py-6">
-        {q && (
-          <div className="mb-3 flex items-center justify-between gap-2 rounded-xl bg-pink-50 px-3 py-2 text-sm text-pink-700">
-            <span>
-              Buscando: <strong>&ldquo;{q}&rdquo;</strong>
-            </span>
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold hover:bg-pink-100"
-            >
-              Quitar ×
-            </button>
-          </div>
-        )}
-
-        <div className="space-y-4 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm">
-          <label
-            htmlFor="filtro-disponible"
-            className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-neutral-700"
+      {/* ───── Filtros ───── */}
+      <section aria-label="Filtros" className="mx-auto mt-5 max-w-6xl px-3 sm:px-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="chip !min-h-11 !px-4 !text-[0.95rem]"
+            aria-pressed={soloDisponibles}
+            onClick={() => setSoloDisponibles((v) => !v)}
           >
-            <input
-              id="filtro-disponible"
-              type="checkbox"
-              checked={soloDisponibles}
-              onChange={(e) => setSoloDisponibles(e.target.checked)}
-              className="h-4 w-4 shrink-0 accent-pink-600"
+            <span
+              aria-hidden="true"
+              className={`h-2.5 w-2.5 rounded-full ${soloDisponibles ? "bg-white" : "bg-sheet"}`}
             />
-            Buscar solo lugares abiertos y con disponibilidad ahora
-          </label>
+            Solo con lugar ahora
+          </button>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="filtro-zona"
-                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400"
-              >
-                Barrio
-              </label>
-              <select
-                id="filtro-zona"
-                value={zona}
-                onChange={(e) => setZona(e.target.value)}
-                className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-700 focus:border-pink-400 focus:outline-none"
-              >
-                <option value="">Todos los barrios</option>
-                {zonas.map((z) => (
-                  <option key={z} value={z}>
-                    {z}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <span
-                id="filtro-precio-label"
-                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400"
-              >
-                Precio por turno
+          <button
+            type="button"
+            className="chip !min-h-11 !px-4 !text-[0.95rem]"
+            aria-expanded={filtrosAbiertos}
+            aria-controls="panel-filtros"
+            data-on={filtrosAbiertos || filtrosActivos > 0 ? "true" : undefined}
+            onClick={() => setFiltrosAbiertos((v) => !v)}
+          >
+            Filtros
+            {filtrosActivos > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-extrabold text-sheet-deep">
+                {filtrosActivos}
               </span>
-              {rango && precioSel ? (
-                <div
-                  role="group"
-                  aria-labelledby="filtro-precio-label"
-                  className="rounded-lg border border-neutral-200 px-3 py-2.5"
+            )}
+            <IconChevron
+              size={16}
+              className={`transition-transform duration-300 ${filtrosAbiertos ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          {q && (
+            <span className="chip !min-h-11 !border-sheet !pl-4 !pr-1.5 !text-[0.95rem] !text-pink-text">
+              “{q}”
+              <button
+                type="button"
+                onClick={() => router.push("/")}
+                aria-label="Quitar búsqueda por nombre"
+                className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-surface-2"
+              >
+                <IconClose size={14} />
+              </button>
+            </span>
+          )}
+        </div>
+
+        <div id="panel-filtros" className="fold" data-open={filtrosAbiertos}>
+          <div className="fold-inner" inert={!filtrosAbiertos}>
+            <div className="panel mt-3 grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
+              <div>
+                <label htmlFor="filtro-zona" className="mb-1.5 block text-sm font-bold text-ink-2">
+                  Barrio
+                </label>
+                <select
+                  id="filtro-zona"
+                  value={zona}
+                  onChange={(e) => setZona(e.target.value)}
+                  className="field"
                 >
-                  <PriceRangeSlider
-                    min={rango.min}
-                    max={rango.max}
-                    valueMin={precioSel.min}
-                    valueMax={precioSel.max}
-                    onChange={(min, max) => setPrecioSel({ min, max })}
-                  />
-                </div>
-              ) : (
-                <div className="rounded-lg border border-neutral-200 px-3 py-2.5 text-sm text-neutral-300">
-                  Cargando…
+                  <option value="">Todos los barrios</option>
+                  {zonas.map((z) => (
+                    <option key={z} value={z}>
+                      {z}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <span id="filtro-precio-label" className="mb-1.5 block text-sm font-bold text-ink-2">
+                  Precio por turno
+                </span>
+                {rango && precioSel ? (
+                  <div role="group" aria-labelledby="filtro-precio-label" className="px-1">
+                    <PriceRangeSlider
+                      min={rango.min}
+                      max={rango.max}
+                      valueMin={precioSel.min}
+                      valueMax={precioSel.max}
+                      onChange={(min, max) => setPrecioSel({ min, max })}
+                    />
+                  </div>
+                ) : (
+                  <div className="sign--ghost sign h-11 rounded-xl" />
+                )}
+              </div>
+
+              <div className="sm:col-span-2">
+                <span className="mb-1.5 block text-sm font-bold text-ink-2">Servicios</span>
+                <ServiciosDropdown
+                  items={servicios}
+                  onChange={setServicios}
+                  opciones={SERVICIOS_FILTRO}
+                  placeholderVacio="Cualquier servicio"
+                  permitirPersonalizado={false}
+                />
+              </div>
+
+              {filtrosActivos > 0 && (
+                <div className="sm:col-span-2">
+                  <button type="button" onClick={limpiarTodo} className="btn btn-quiet">
+                    Limpiar filtros
+                  </button>
                 </div>
               )}
             </div>
           </div>
-
-          <div>
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-400">
-              Servicios
-            </span>
-            <ServiciosDropdown
-              items={servicios}
-              onChange={setServicios}
-              opciones={SERVICIOS_FILTRO}
-              placeholderVacio="Cualquier servicio"
-              permitirPersonalizado={false}
-            />
-          </div>
         </div>
+      </section>
 
-        <div className="mt-3 flex items-center justify-between text-xs text-neutral-400">
-          <span>
+      {/* ───── Resultados ───── */}
+      <section className="mx-auto mt-5 max-w-6xl px-3 pb-4 sm:px-6" aria-live="polite">
+        <div className="mb-3 flex items-baseline justify-between gap-3 px-1">
+          <h2 className="font-display text-[1.6rem] font-bold leading-none tracking-wide">
+            Salidas cercanas
+          </h2>
+          <p className="text-sm font-semibold text-ink-3">
             {loading
               ? "Buscando disponibilidad…"
               : `${hotels.length} alojamiento${hotels.length === 1 ? "" : "s"}`}
-          </span>
+          </p>
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            <span>{error}</span>
+          <div role="alert" className="panel flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center">
+            <IconWifiOff size={28} className="shrink-0 text-pink-text" />
+            <p className="flex-1 font-semibold">{error}</p>
             <button
               onClick={() => {
                 setLoading(true);
                 cargar();
               }}
-              className="shrink-0 rounded-lg border border-red-300 px-2.5 py-1 text-xs font-semibold"
+              className="btn btn-primary"
             >
               Reintentar
             </button>
           </div>
         )}
 
-        {!loading && !error && hotels.length === 0 && (
-          <div className="mt-8 rounded-2xl border border-dashed border-pink-200 bg-pink-50/50 p-8 text-center text-sm text-neutral-500">
-            No encontramos alojamientos con esos filtros. Probá ampliando la búsqueda.
+        {loading && hotels.length === 0 && !error && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="sign sign--ghost h-[11.5rem]" />
+            ))}
           </div>
         )}
 
-        <div className="mt-3 space-y-2.5">
-          {hotelesOrdenados.map(({ hotel, km }) => (
-            <HotelCard key={hotel.id} hotel={hotel} distanciaKm={km} />
+        {!loading && !error && hotels.length === 0 && (
+          <div className="panel px-5 py-10 text-center">
+            <p className="font-display text-2xl font-bold">Ninguna salida con esos filtros</p>
+            <p className="mx-auto mt-1 max-w-sm text-ink-2">
+              Probá ampliar el precio o sacar un servicio.
+            </p>
+            <button type="button" onClick={limpiarTodo} className="btn btn-primary mt-5">
+              Ver todos
+            </button>
+          </div>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {hotelesOrdenados.map(({ hotel, km }, i) => (
+            <HotelCard key={hotel.id} hotel={hotel} distanciaKm={km} indice={i} />
           ))}
         </div>
       </section>

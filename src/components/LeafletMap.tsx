@@ -55,8 +55,8 @@ export default function LeafletMap({
         const icon = L.divIcon({
           className: "",
           html: `<div class="map-pin ${disponible ? "map-pin--on" : "map-pin--off"}"></div>`,
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
         });
         const marker = L.marker([h.lat, h.lng], { icon }).addTo(map);
         marker.bindPopup(
@@ -64,8 +64,8 @@ export default function LeafletMap({
              <strong>${h.nombre}</strong><br/>
              ${
                disponible
-                 ? `<span style="color:#059669">${h.totalDisponibles} libres ahora</span>`
-                 : `<span style="color:#a3a3a3">Sin disponibilidad</span>`
+                 ? `<span style="color:var(--pink-text);font-weight:700">${h.totalDisponibles} libres ahora</span>`
+                 : `<span style="color:var(--ink-3);font-weight:700">${h.abierto ? "Lleno" : "Cerrado"}</span>`
              }<br/>
              ${h.precioDesde !== null ? `Desde ${formatARS(h.precioDesde)}` : ""}
              <br/><a href="/hotel/${h.slug}">Ver hotel →</a>
