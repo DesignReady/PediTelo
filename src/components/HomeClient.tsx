@@ -148,29 +148,27 @@ export default function HomeClient() {
               </div>
             </div>
 
-            <div className="mt-6 flex items-end gap-4 lg:mt-0">
-              <Digits
-                value={libresAhora ?? "–"}
-                ignite
-                className="text-[4rem] text-pink-text sm:text-[5rem] lg:text-[6.5rem]"
-                label={
-                  libresAhora === null
-                    ? "Calculando habitaciones libres"
-                    : `${libresAhora} habitaciones libres ahora`
-                }
-              />
-              <div className="pb-1.5 sm:pb-3 lg:pb-5">
-                <p className="font-display text-[1.3rem] font-bold leading-tight sm:text-[1.6rem]">
-                  habitaciones
-                  <br />
-                  libres ahora
-                </p>
-                <p className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-ink-2">
-                  <span className="live-dot" aria-hidden="true" />
-                  En vivo, se actualiza solo
-                </p>
+            {libresAhora !== null && (
+              <div className="mt-6 flex items-end gap-4 lg:mt-0">
+                <Digits
+                  value={libresAhora}
+                  ignite
+                  className="text-[4rem] text-pink-text sm:text-[5rem] lg:text-[6.5rem]"
+                  label={`${libresAhora} habitaciones libres ahora`}
+                />
+                <div className="pb-1.5 sm:pb-3 lg:pb-5">
+                  <p className="font-display text-[1.3rem] font-bold leading-tight sm:text-[1.6rem]">
+                    habitaciones
+                    <br />
+                    libres ahora
+                  </p>
+                  <p className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-ink-2">
+                    <span className="live-dot" aria-hidden="true" />
+                    En vivo, se actualiza solo
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
